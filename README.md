@@ -20,7 +20,7 @@ Agents are good at reading and deciding: which vault actually paid more this wee
 
 Each wallet also keeps its own **on-chain policy** in Warden: per-token limits per action and per day, the protocols allowed, approved payees, an expiry and a pause switch. The agent proposes the policy, and you sign it once.
 
-Most losses do not happen inside a careful dApp. They happen when a user signs a drainer's approval or permit on some other site. So Warden's agent also checks what other dApps ask you to sign: it simulates their transactions, reads their signature requests, and finds and revokes risky approvals.
+Most losses do not happen inside a careful dApp. They happen when a user signs a drainer's approval or permit on some other site. So Warden's agent also works as a **wallet firewall** for what other dApps ask you to sign: it simulates their transactions, reads their signature requests, and finds and revokes risky approvals. These checks work before you connect a wallet; without one, the simulation runs from an empty address and says so.
 
 ## Two networks
 
@@ -95,6 +95,12 @@ A batch payment run end to end on Atlantic Testnet with a test wallet (`0x1fe2�
 1. policy, 5 USDC per action and 20 per day: [`0xa37997fc…`](https://atlantic.pharosscan.xyz/tx/0xa37997fc4c6c0d87e0f787c6ea971cded49b521d915c8e3cf8733c172b62cccc)
 2. Permit2 approval for exactly 0.4 USDC: [`0x376eb783…`](https://atlantic.pharosscan.xyz/tx/0x376eb78319bf53e214b1454a62a33104ffaf5fed03f806c426fb453b5e034f5d)
 3. one signed Warden intent paying 0.25 USDC and 0.15 USDC to two addresses: [`0x46adb742…`](https://atlantic.pharosscan.xyz/tx/0x46adb7428eab8b482f26a7f053b4f81cbfaf508719ebdf2d0854870293d5d158). The dry run said −0.4 USDC; each payee received exactly its amount; `Paid` events for both; no allowance left open afterwards
+
+And the wallet-safety side, on the same wallet:
+
+4. a risky approval (1 USDC to a plain wallet): [`0x712b55c7…`](https://atlantic.pharosscan.xyz/tx/0x712b55c78aa2ca2cf5a7cb09370d875f281c7caa9e2c8e9370193fe336376bad). `scan_approvals` found it in 4.6 s and marked it critical
+5. the revoke Warden prepared (`approve(spender, 0)`), sent: [`0xab3ca12b…`](https://atlantic.pharosscan.xyz/tx/0xab3ca12b8ccfef5d325be12478e9f15515007e61f896acee3fa7a76cf9c11612), allowance back to 0
+6. a Warden intent sent with a bad signature, which failed as it must: [`0x51940f75…`](https://atlantic.pharosscan.xyz/tx/0x51940f7520f6960438ea2e013faf78b5b850635689badab7f012dae405a44cb8). `explain_tx` replays it and says *"the signature is not valid for this intent (Permit2 rejected it)"*
 
 ## Safety
 

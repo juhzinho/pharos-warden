@@ -75,6 +75,9 @@ test("reverts are explained in words, with amounts", () => {
   const out = encodeErrorResult({ abi: ABI.warden, errorName: "OutBelowMinimum", args: [net().tokens.WPROS.address, 10n ** 18n, 5n * 10n ** 17n] });
   assert.equal(explainRevert(out).text, "WPROS delivered (0.5 WPROS) would be below the signed minimum (1 WPROS)");
   assert.equal(explainRevert(encodeErrorResult({ abi: ABI.warden, errorName: "NoPolicy" })).name, "NoPolicy");
+  // Permit2 rejecting a signature (the real Atlantic tx 0x51940f75… reverted with exactly 0x8baa579f)
+  assert.equal(encodeErrorResult({ abi: ABI.warden, errorName: "InvalidSignature" }), "0x8baa579f");
+  assert.equal(explainRevert("0x8baa579f").text, "the signature is not valid for this intent (Permit2 rejected it)");
   assert.match(explainRevert("0x").text, /without a reason/);
 });
 

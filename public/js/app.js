@@ -29,7 +29,7 @@ const DYN = {
     connectFirst: "Connect your wallet to let the agent prepare transactions for you. You can still ask questions.",
     noWallet: "No browser wallet found. Install MetaMask, Rabby or OKX Wallet.",
     pays: "Pays exactly", guaranteed: "Guaranteed", dryOk: "Dry run of the exact transaction passed", dryBad: "Dry run failed", gas: "gas", assumed: "Assumed in the dry run", fee: "Network fee",
-    approve: "Approve", sign: "Sign the guarantees", sendWarden: "Send to Warden", sendTx: "Send in wallet", askPolicy: "Ask the agent to set it up",
+    approve: "Approve", oneTx: "One transaction in your wallet", sign: "Sign the guarantees", sendWarden: "Send to Warden", sendTx: "Send in wallet", askPolicy: "Ask the agent to set it up",
     signed: "Signed", sent: "Sent", waiting: "Waiting for the receipt…", verified: "Verified on chain", reverted: "Reverted on chain — nothing moved",
     rejected: "You rejected it in the wallet.", expired: "This proposal has expired — ask the agent again for fresh numbers.",
     guaranteesHeld: "Every guarantee held", guaranteeFailed: "A guarantee did not hold", explorer: "explorer",
@@ -43,7 +43,7 @@ const DYN = {
     assume: { allowance: (s) => `your ${s} approval to Permit2 (the one-time step below)`, balance: (s) => `a ${s} balance of the amount to spend`, policy: () => "the Warden policy proposed above (not set yet)" },
     verdict: { do_not_sign: "Do not sign", high_risk: "High risk", caution: "Caution", looks_ok: "Looks OK" },
     risk: { critical: "critical", high: "high", medium: "medium", low: "low" },
-    checkTx: "Transaction check", checkSig: "Signature check", simRan: "Simulated as you", wouldFail: "would fail", noChange: "no balance change", newAllowance: "new allowance",
+    checkTx: "Transaction check", checkSig: "Signature check", simRan: "Simulated as you", simEmpty: "Simulated from an empty address (connect your wallet for your own balances)", simAs: "Simulated as", wouldFail: "would fail", noChange: "no balance change", newAllowance: "new allowance",
     approvalsTitle: "Your token approvals", noApprovals: "No open approvals found.", revoke: "Revoke", revokeAsk: (t, s, k) => `Revoke the ${t} allowance of ${s} (${k})`,
   },
   pt: {
@@ -54,7 +54,7 @@ const DYN = {
     connectFirst: "Conecte sua carteira para o agente preparar transações para você. Você ainda pode fazer perguntas.",
     noWallet: "Nenhuma carteira encontrada no navegador. Instale MetaMask, Rabby ou OKX Wallet.",
     pays: "Paga exatamente", guaranteed: "Garantido", dryOk: "Simulação da transação exata passou", dryBad: "A simulação falhou", gas: "gás", assumed: "Suposto na simulação", fee: "Taxa da rede",
-    approve: "Aprovar", sign: "Assinar as garantias", sendWarden: "Enviar ao Warden", sendTx: "Enviar na carteira", askPolicy: "Pedir ao agente para configurar",
+    approve: "Aprovar", oneTx: "Uma transação na sua carteira", sign: "Assinar as garantias", sendWarden: "Enviar ao Warden", sendTx: "Enviar na carteira", askPolicy: "Pedir ao agente para configurar",
     signed: "Assinado", sent: "Enviado", waiting: "Aguardando o recibo…", verified: "Verificado na chain", reverted: "Revertida na chain — nada se moveu",
     rejected: "Você recusou na carteira.", expired: "Esta proposta expirou — peça de novo ao agente para números atualizados.",
     guaranteesHeld: "Todas as garantias se cumpriram", guaranteeFailed: "Uma garantia não se cumpriu", explorer: "explorador",
@@ -68,7 +68,7 @@ const DYN = {
     assume: { allowance: (s) => `sua aprovação de ${s} ao Permit2 (o passo único abaixo)`, balance: (s) => `um saldo de ${s} no valor a gastar`, policy: () => "a política do Warden proposta acima (ainda não definida)" },
     verdict: { do_not_sign: "Não assine", high_risk: "Risco alto", caution: "Atenção", looks_ok: "Parece OK" },
     risk: { critical: "crítico", high: "alto", medium: "médio", low: "baixo" },
-    checkTx: "Checagem de transação", checkSig: "Checagem de assinatura", simRan: "Simulado como você", wouldFail: "falharia", noChange: "nenhuma mudança de saldo", newAllowance: "nova permissão",
+    checkTx: "Checagem de transação", checkSig: "Checagem de assinatura", simRan: "Simulado como você", simEmpty: "Simulado de um endereço vazio (conecte a carteira para usar os seus saldos)", simAs: "Simulado como", wouldFail: "falharia", noChange: "nenhuma mudança de saldo", newAllowance: "nova permissão",
     approvalsTitle: "Suas aprovações de tokens", noApprovals: "Nenhuma aprovação aberta encontrada.", revoke: "Revogar", revokeAsk: (t, s, k) => `Revogue a permissão de ${t} de ${s} (${k})`,
   },
 };
@@ -424,9 +424,9 @@ function renderCard(card) {
   if (card.kind === "tx") {
     const el = document.createElement("div");
     el.className = "proposal";
-    el.innerHTML = `<div class="p-head"><span class="badge">${esc(badge(card.action))}</span><b>${esc(card.summary)}</b></div><ul class="lines">${card.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>${warnBox(key)}<ol class="steps"></ol><div class="p-result"></div>`;
+    el.innerHTML = `<div class="p-head"><span class="badge">${esc(badge(card.action))}</span><b>${esc(card.summary)}</b></div>${card.lines.length && !(card.lines.length === 1 && card.lines[0] === card.summary) ? `<ul class="lines">${card.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>` : ""}${warnBox(key)}<ol class="steps"></ol><div class="p-result"></div>`;
     el.querySelector(".steps").appendChild(
-      stepRow(card.summary, d("sendTx"), async (li) => {
+      stepRow(d("oneTx"), d("sendTx"), async (li) => {
         requireWallet();
         const hash = await wallet.send(card.tx, key);
         await afterSend(el, li, hash, false, key);
@@ -493,21 +493,22 @@ function renderCard(card) {
 
 /** A transaction or signature check: the verdict first, then what the simulation saw, then every flag. */
 function renderCheck(card) {
+  const pt = lang === "pt";
   const el = document.createElement("div");
   el.className = "check";
   const head = `<div class="p-head"><span class="verdict ${esc(card.verdict)}">${esc(d("verdict")[card.verdict] ?? card.verdict)}</span> <b>${esc(card.what === "signature" ? d("checkSig") : d("checkTx"))}</b></div>`;
   let body = "";
   if (card.what === "transaction") {
-    body += `<div class="what"><span class="mono">${esc(card.call)}</span> → <a class="mono" href="${esc(explorerAddr(card.target.address, card.networkKey))}" target="_blank" rel="noopener">${esc(short(card.target.address))}</a> <span class="muted">(${esc(card.target.is)})</span></div>`;
+    body += `<div class="what"><span class="mono">${esc(card.call)}</span> → <a class="mono" href="${esc(explorerAddr(card.target.address, card.networkKey))}" target="_blank" rel="noopener">${esc(short(card.target.address))}</a> <span class="muted">(${esc(pt ? card.target.isPt ?? card.target.is : card.target.is)})</span></div>`;
     const s = card.simulation;
     if (s?.ran) {
-      const changes = [...(s.changes ?? []), ...(s.newAllowances ?? []).map((a) => `${d("newAllowance")}: ${a}`)];
-      body += `<div class="simline">${esc(d("simRan"))}: ${s.wouldSucceed ? "" : `<b style="color:var(--bad)">${esc(d("wouldFail"))}</b> · `}${esc(changes.length ? changes.join(" · ") : d("noChange"))}</div>`;
+      const changes = [...(s.changes ?? []), ...((pt ? s.newAllowancesPt : null) ?? s.newAllowances ?? []).map((a) => `${d("newAllowance")}: ${a}`)];
+      body += `<div class="simline">${esc(card.as === "empty" ? d("simEmpty") : card.as && card.as !== "you" ? `${d("simAs")} ${short(card.as)}` : d("simRan"))}: ${s.wouldSucceed ? "" : `<b style="color:var(--bad)">${esc(d("wouldFail"))}</b> · `}${esc(changes.length ? changes.join(" · ") : d("noChange"))}</div>`;
     }
   } else {
-    body += `<div class="what">${esc(card.request)}</div>`;
+    body += `<div class="what">${esc(pt ? card.requestPt ?? card.request : card.request)}</div>`;
   }
-  const flags = (card.flags ?? []).map((f) => `<li class="${esc(f.severity)}">${esc(f.text)}</li>`).join("");
+  const flags = (card.flags ?? []).map((f) => `<li class="${esc(f.severity)}">${esc(pt ? f.pt ?? f.text : f.text)}</li>`).join("");
   el.innerHTML = `${head}${body}${flags ? `<ul class="flags">${flags}</ul>` : ""}`;
   return el;
 }
@@ -517,9 +518,9 @@ function renderApprovals(card) {
   const el = document.createElement("div");
   el.className = "check";
   const rows = card.approvals
-    .map((a, i) => `<div><span><span class="verdict ${esc(a.risk)}">${esc(d("risk")[a.risk] ?? a.risk)}</span> <b>${esc(a.amount === "unlimited" ? (lang === "pt" ? "ilimitado" : "unlimited") : a.amount)} ${esc(a.token)}</b> → ${esc(a.spenderIs)} <a class="mono" href="${esc(explorerAddr(a.spender, card.networkKey))}" target="_blank" rel="noopener">${esc(short(a.spender))}</a>${a.kind === "permit2" ? " · Permit2" : ""}</span><small>${esc(a.why)}</small>${card.own ? `<button class="btn small" data-i="${i}">${esc(d("revoke"))}</button>` : ""}</div>`)
+    .map((a, i) => `<div><span><span class="verdict ${esc(a.risk)}">${esc(d("risk")[a.risk] ?? a.risk)}</span> <b>${esc(a.amount === "unlimited" ? (lang === "pt" ? "ilimitado" : "unlimited") : a.amount)} ${esc(a.token)}</b> → ${esc(lang === "pt" ? a.spenderIsPt ?? a.spenderIs : a.spenderIs)} <a class="mono" href="${esc(explorerAddr(a.spender, card.networkKey))}" target="_blank" rel="noopener">${esc(short(a.spender))}</a>${a.kind === "permit2" ? " · Permit2" : ""}</span><small>${esc(lang === "pt" ? a.whyPt ?? a.why : a.why)}</small>${card.own ? `<button class="btn small" data-i="${i}">${esc(d("revoke"))}</button>` : ""}</div>`)
     .join("");
-  el.innerHTML = `<div class="p-head"><b>${esc(d("approvalsTitle"))}</b></div><div class="appr">${rows || `<p class="muted" style="margin:0">${esc(d("noApprovals"))}</p>`}</div><p class="fine">${esc(card.coverage)}</p>`;
+  el.innerHTML = `<div class="p-head"><b>${esc(d("approvalsTitle"))}</b></div><div class="appr">${rows || `<p class="muted" style="margin:0">${esc(d("noApprovals"))}</p>`}</div><p class="fine">${esc(lang === "pt" ? card.coveragePt ?? card.coverage : card.coverage)}</p>`;
   el.querySelectorAll("button[data-i]").forEach((b) =>
     b.addEventListener("click", () => {
       const a = card.approvals[Number(b.dataset.i)];
