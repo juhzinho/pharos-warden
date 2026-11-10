@@ -1,0 +1,8 @@
+.env
+.env.*
+scratch/
+contracts/
+test/
+docs/
+scripts/
+*.md
