@@ -1,0 +1,228 @@
+{
+ "source": "ProsPilot RealFi registry (github.com/juhzinho/pharos-agent, lib/realfi.ts), each token checked on Pacific Mainnet",
+ "checkedAt": "2026-11-10",
+ "protocols": [
+  {
+   "name": "pAlpha Vault (Ember)",
+   "type": "RWA High Yield · ERC-4626",
+   "url": "https://ember.so/earn/pALPHA",
+   "tokens": [
+    {
+     "symbol": "pALPHA",
+     "address": "0xE47E9bA4EA2320A6ed87246d02Fd5C38485Ed7d1",
+     "decimals": 6,
+     "vault": true,
+     "note": null,
+     "asset": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815"
+    },
+    {
+     "symbol": "S-pALPHA",
+     "address": "0x5ED00449A0D0B6A9F26FD6aF05832808A8b96bbE",
+     "decimals": 6,
+     "vault": false,
+     "note": "senior tranche"
+    },
+    {
+     "symbol": "P-pALPHA",
+     "address": "0x34fD642Fa9fDc6Ce4013d4F3cde575C6dac904f9",
+     "decimals": 6,
+     "vault": false,
+     "note": "principal tranche"
+    },
+    {
+     "symbol": "AQ-pALPHA",
+     "address": "0xe150A72352a189dCe0D671C08F721B458104a2Af",
+     "decimals": 6,
+     "vault": false,
+     "note": "AquaFlux tranche"
+    },
+    {
+     "symbol": "SS-pAlpha",
+     "address": "0xBf5761dc90A87976300D3DDCe40B9cBa66b66041",
+     "decimals": 18,
+     "vault": false,
+     "note": "surplus yield"
+    }
+   ]
+  },
+  {
+   "name": "AquaFlux",
+   "type": "Fixed-rate Lending / Tri-Token",
+   "url": "https://app.aquaflux.pro",
+   "tokens": [
+    {
+     "symbol": "aqLP",
+     "address": "0x99848bb3843A1cFBF2A03CFFEf146Ae6F216d343",
+     "decimals": 18,
+     "vault": false,
+     "note": "LP token"
+    },
+    {
+     "symbol": "P-CBT",
+     "address": "0x0881e99c766006e0D158e7979DdA67Ea5E2359f6",
+     "decimals": 18,
+     "vault": false,
+     "note": "principal",
+     "correctedFromProsPilot": "decimals 6 → 18"
+    },
+    {
+     "symbol": "C-CBT",
+     "address": "0x50D10327b6cA6Dcdb8a3505f65BA8c0C97b6C7D8",
+     "decimals": 18,
+     "vault": false,
+     "note": "coupon",
+     "correctedFromProsPilot": "decimals 6 → 18"
+    },
+    {
+     "symbol": "S-CBT",
+     "address": "0x22dB220Cbb04AD850bBF0639b96b2670cCF67446",
+     "decimals": 18,
+     "vault": false,
+     "note": "senior/shield",
+     "correctedFromProsPilot": "decimals 6 → 18"
+    },
+    {
+     "symbol": "SS-CBT",
+     "address": "0x2F47d679635D36A26D2C4E996a5643c991e26bAC",
+     "decimals": 18,
+     "vault": false,
+     "note": "surplus"
+    }
+   ]
+  },
+  {
+   "name": "Zona Pharos",
+   "type": "Lending / Staking",
+   "url": "https://port.pharos.xyz",
+   "tokens": [
+    {
+     "symbol": "zProsUSDC",
+     "address": "0x843913DE261A1712d3aE8d4bc751E705Bb0823B8",
+     "decimals": 6,
+     "vault": false,
+     "note": null
+    },
+    {
+     "symbol": "zProsWPROS",
+     "address": "0x7E23C96D7FBCD538272390EC5F8766032d4D96fD",
+     "decimals": 18,
+     "vault": false,
+     "note": "staked WPROS"
+    },
+    {
+     "symbol": "variableDebtProsUSDC",
+     "address": "0x8809BD2389E9e16C30B0e9Ae24DF0682c3290D45",
+     "decimals": 6,
+     "vault": false,
+     "note": "⚠ USDC debt (borrowed)",
+     "correctedFromProsPilot": "symbol debtProsUSDC → variableDebtProsUSDC"
+    }
+   ]
+  },
+  {
+   "name": "OpenFi",
+   "type": "Lending",
+   "url": "https://port.pharos.xyz",
+   "tokens": [
+    {
+     "symbol": "bUSDC",
+     "address": "0x9dcf4b664Fd2c8f0F5147eA469Afe1cBc9e69D96",
+     "decimals": 6,
+     "vault": false,
+     "note": "supplied USDC"
+    }
+   ]
+  },
+  {
+   "name": "R25 VRPC Vaults",
+   "type": "RWA Consumer Credit · ERC-4626",
+   "url": "https://app.r25.xyz",
+   "tokens": [
+    {
+     "symbol": "VRPCW",
+     "address": "0x1c2bc8b553d9a7E61F7531a3a4bF2162F4569268",
+     "decimals": 6,
+     "vault": true,
+     "note": "weekly",
+     "asset": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815"
+    },
+    {
+     "symbol": "VRPCS",
+     "address": "0xeE26bB0989691735C997DFDc49A4A607F75e190b",
+     "decimals": 6,
+     "vault": true,
+     "note": "semi-yearly",
+     "asset": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815"
+    },
+    {
+     "symbol": "VRPCQ",
+     "address": "0x94F7EbC6Ae0819a4B4E231AE6dDaAF9Bfd2a1a86",
+     "decimals": 6,
+     "vault": true,
+     "note": "quarterly",
+     "asset": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815"
+    }
+   ]
+  },
+  {
+   "name": "TermMax",
+   "type": "Fixed-rate Lending · ERC-4626",
+   "url": "https://app.termmax.ts.finance/earn/pharos",
+   "tokens": [
+    {
+     "symbol": "tmPHRC",
+     "address": "0xD04D1a8Bd7944e06e25192aaD833700115C88480",
+     "decimals": 6,
+     "vault": true,
+     "note": null,
+     "asset": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815"
+    }
+   ]
+  },
+  {
+   "name": "Janus Henderson / Anemoy",
+   "type": "Tokenized Treasury Fund",
+   "url": "https://port.pharos.xyz",
+   "tokens": [
+    {
+     "symbol": "JTRSY",
+     "address": "0xC18e6f730896971a79D748E8deA61067A9Bc6040",
+     "decimals": 6,
+     "vault": false,
+     "note": "US Treasury fund"
+    }
+   ]
+  },
+  {
+   "name": "Faroo",
+   "type": "Liquid Staking · Hybrid Yield (RWA)",
+   "url": "https://app.faroo.xyz",
+   "tokens": [
+    {
+     "symbol": "stPROS",
+     "address": "0x6b0A44c64190279f7034b77c13a566E914FE5Ec4",
+     "decimals": 18,
+     "vault": true,
+     "note": null,
+     "asset": "0x52C48d4213107b20bC583832b0d951FB9CA8F0B0"
+    },
+    {
+     "symbol": "FRHV001",
+     "address": "0x36F3d19DDA7ED1428E3014Ae6f2A75D70393B7e6",
+     "decimals": 24,
+     "vault": true,
+     "note": null,
+     "asset": "0x6b0A44c64190279f7034b77c13a566E914FE5Ec4"
+    },
+    {
+     "symbol": "FYV001",
+     "address": "0xc775dFAA7565f2AcA5ddF5dD6837cEb846de591b",
+     "decimals": 24,
+     "vault": true,
+     "note": null,
+     "asset": "0x6b0A44c64190279f7034b77c13a566E914FE5Ec4"
+    }
+   ]
+  }
+ ]
+}

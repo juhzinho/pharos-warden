@@ -74,12 +74,17 @@ export class Wallet {
     return this.request("eth_sendTransaction", [params]);
   }
 
-  /** EIP-712 v4. Permit2's domain has no version field: EIP712Domain lists exactly name, chainId, verifyingContract. */
+  /**
+   * EIP-712 v4. EIP712Domain lists exactly the fields the domain has, in the standard order: Permit2's has no version,
+   * USDC's (EIP-3009, for x402) has one.
+   */
   async signTypedData(td, network = this.network) {
     await this.ensureChain(network);
+    const FIELDS = [["name", "string"], ["version", "string"], ["chainId", "uint256"], ["verifyingContract", "address"], ["salt", "bytes32"]];
+    const { EIP712Domain, ...types } = td.types;
     const payload = {
       domain: td.domain,
-      types: { EIP712Domain: [{ name: "name", type: "string" }, { name: "chainId", type: "uint256" }, { name: "verifyingContract", type: "address" }], ...td.types },
+      types: { EIP712Domain: FIELDS.filter(([k]) => td.domain[k] !== undefined).map(([name, type]) => ({ name, type })), ...types },
       primaryType: td.primaryType,
       message: td.message,
     };

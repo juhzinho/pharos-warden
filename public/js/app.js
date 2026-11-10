@@ -18,6 +18,7 @@ const T = {
     ratesTitle: "Rendimento em USDC na Pacific Mainnet · últimos 7 dias", ratesNote: "Realizado: preços de cota e índices de renda on-chain com 7 dias de diferença, lidos pelo Pharos Chain MCP.",
     contractTitle: "O contrato", arch: "Arquitetura",
     spendMax: "Você gasta no máximo", getMin: "Você recebe no mínimo",
+    navAgent: "Agente", navTrade: "Trade", navNetwork: "Rede", navEco: "Ecossistema", navNews: "Notícias",
   },
 };
 const DYN = {
@@ -106,8 +107,8 @@ function units(v, decimals, max = 6) {
   return `${neg ? "-" : ""}${i.toLocaleString(lang === "pt" ? "pt-BR" : "en-US")}${f ? (lang === "pt" ? "," : ".") + f : ""}`;
 }
 const BADGE = {
-  en: { swap: "swap", deposit: "deposit", withdraw: "withdraw", payment: "payment", policy: "policy", pause: "pause", unpause: "unpause", approve_payee: "payee", remove_payee: "payee", allow_withdraw: "limit", revoke: "revoke" },
-  pt: { swap: "troca", deposit: "depósito", withdraw: "saque", payment: "pagamento", policy: "política", pause: "pausa", unpause: "retomar", approve_payee: "destinatário", remove_payee: "destinatário", allow_withdraw: "limite", revoke: "revogar" },
+  en: { swap: "swap", deposit: "deposit", withdraw: "withdraw", payment: "payment", policy: "policy", pause: "pause", unpause: "unpause", approve_payee: "payee", remove_payee: "payee", allow_withdraw: "limit", revoke: "revoke", liquidity: "liquidity", stake: "stake", unstake: "unstake", approve: "approve" },
+  pt: { swap: "troca", deposit: "depósito", withdraw: "saque", payment: "pagamento", policy: "política", pause: "pausa", unpause: "retomar", approve_payee: "destinatário", remove_payee: "destinatário", allow_withdraw: "limite", revoke: "revogar", liquidity: "liquidez", stake: "stake", unstake: "unstake", approve: "aprovar" },
 };
 const badge = (action) => BADGE[lang]?.[action] ?? action;
 const amt = (token, v, key) => `${units(v, tokenOf(token, key).decimals)} ${tokenOf(token, key).symbol}`;
@@ -152,6 +153,7 @@ function applyNetwork() {
   $("fine").textContent = d("fine")[network];
   $("footExplorer").href = netInfo().explorer;
   renderChips();
+  renderActions();
   renderContract();
   if (lastWallet?.network === network) renderWallet(lastWallet);
   else if (!wallet) $("wallet").innerHTML = esc(lang === "pt" ? T.pt.walletEmpty : EN.walletEmpty);
@@ -210,7 +212,7 @@ async function refreshWallet() {
 
 function renderWallet(w) {
   const rows = [`<div><span>${esc(d("gasLabel")(netInfo(w.network).native))}</span><b>${units(w.pros, 18, 4)}</b></div>`];
-  for (const h of w.holdings) if (BigInt(h.balance) > 0n) rows.push(`<div><span>${esc(h.symbol)}</span><b>${units(h.balance, h.decimals, 4)}${h.valueUsdc ? ` <span class="muted">≈ ${units(h.valueUsdc, 6, 2)} USDC</span>` : ""}</b></div>`);
+  for (const h of w.holdings) if (BigInt(h.balance) > 0n) rows.push(`<div><span>${esc(h.symbol)}</span><b>${units(h.balance, h.decimals, 4)}${h.value ? ` <span class="muted">≈ ${units(h.value, h.valueDecimals, 2)} ${esc(h.valueSymbol)}</span>` : ""}</b></div>`);
   let pol = "";
   const p = w.warden;
   if (p?.deployed && p.exists) {
@@ -420,6 +422,10 @@ const warnBox = (key) => `<div class="mainnet${netInfo(key).testnet ? " testnet"
 function renderCard(card) {
   if (card.kind === "check") return renderCheck(card);
   if (card.kind === "approvals") return renderApprovals(card);
+  if (card.kind === "lp") return renderLp(card);
+  if (card.kind === "realfi") return renderRealfi(card);
+  if (card.kind === "score") return renderScore(card);
+  if (card.kind === "x402") return renderX402(card);
   const key = card.networkKey ?? network;
   if (card.kind === "tx") {
     const el = document.createElement("div");
@@ -446,7 +452,7 @@ function renderCard(card) {
   if (!plan.intent.outs.length) el.querySelector(".get span").textContent = d("guaranteed");
   el.querySelector(".spend b").textContent = plan.permit.permitted.map((t) => amt(t.token, t.amount, key)).join(" + ");
   el.querySelector(".get b").innerHTML = [
-    ...plan.intent.outs.map((o) => esc(amt(o.token, o.minDelta, key))),
+    ...plan.intent.outs.map((o) => esc(card.action === "liquidity" ? (lang === "pt" ? "1 NFT de posição FaroSwap (direto na sua carteira)" : "1 FaroSwap position NFT (straight to your wallet)") : amt(o.token, o.minDelta, key))),
     ...plan.intent.pays.map((p) => `${esc(d("pays"))} ${esc(amt(p.token, p.amount, key))} → <a class="mono" href="${esc(explorerAddr(p.to, key))}" target="_blank" rel="noopener">${esc(short(p.to))}</a>`),
   ].join("<br>");
   const simEl = el.querySelector(".sim");
@@ -551,7 +557,138 @@ async function afterSend(el, li, hash, askAgent, key) {
   if (askAgent && okTx && key === network) ask(d("verifyMsg")(hash));
 }
 
+// ─── quick actions (ProsPilot's sidebar, each one a request to the agent) ───────────────────────────────────────
+// send: a complete request, sent at once · fill: a template put in the composer for the user to complete
+const ACTIONS = [
+  { group: { en: "DeFi", pt: "DeFi" }, items: [
+    { i: "⇄", en: "Swap tokens", pt: "Trocar tokens", pacific: true, fill: { en: "Swap 5 USDC to WPROS", pt: "Troque 5 USDC por WPROS" } },
+    { i: "＋", en: "Add liquidity", pt: "Adicionar liquidez", pacific: true, send: { en: "Show me the FaroSwap WPROS/USDC pools and help me add liquidity", pt: "Mostre os pools WPROS/USDC da FaroSwap e me ajude a adicionar liquidez" } },
+    { i: "→", en: "Send tokens", pt: "Enviar tokens", fill: { en: "Pay 1 USDC to 0x", pt: "Pague 1 USDC para 0x" } },
+    { i: "✓", en: "Approve token", pt: "Aprovar token", fill: { en: "Approve exactly 10 USDC for the spender 0x", pt: "Aprove exatamente 10 USDC para o spender 0x" } },
+    { i: "?", en: "Check allowance", pt: "Ver permissão", fill: { en: "How much can 0x… spend of my USDC?", pt: "Quanto 0x… pode gastar do meu USDC?" } },
+  ] },
+  { group: { en: "Staking & LP", pt: "Staking e LP" }, items: [
+    { i: "◆", en: "Stake PROS", pt: "Stake de PROS", pacific: true, send: { en: "What does Faroo staking pay right now, and how much PROS can I stake?", pt: "Quanto rende o staking da Faroo agora e quanto PROS eu posso colocar?" } },
+    { i: "↩", en: "Unstake stPROS", pt: "Tirar stPROS", pacific: true, fill: { en: "Unstake all my stPROS", pt: "Tire todo o meu stPROS do stake" } },
+    { i: "●", en: "My staking", pt: "Meu staking", pacific: true, send: { en: "Show my Faroo staking position", pt: "Mostre minha posição de staking na Faroo" } },
+    { i: "◇", en: "My LP positions", pt: "Minhas posições LP", pacific: true, send: { en: "Show my FaroSwap V3 liquidity positions with their fees", pt: "Mostre minhas posições de liquidez V3 na FaroSwap com as taxas" } },
+  ] },
+  { group: { en: "Intelligence", pt: "Inteligência" }, items: [
+    { i: "▤", en: "Wallet analysis", pt: "Análise da carteira", send: { en: "What's in my wallet?", pt: "O que tem na minha carteira?" } },
+    { i: "★", en: "Wallet score", pt: "Score da carteira", send: { en: "Score my wallet", pt: "Dê um score para a minha carteira" } },
+    { i: "≡", en: "Tx history", pt: "Histórico", pacific: true, send: { en: "Show my recent transactions", pt: "Mostre minhas transações recentes" } },
+    { i: "▣", en: "RealFi positions", pt: "Posições RealFi", pacific: true, send: { en: "Show my RealFi and RWA positions", pt: "Mostre minhas posições RealFi e RWA" } },
+    { i: "◎", en: "RWA market", pt: "Mercado RWA", send: { en: "How big is the tokenized RWA market right now?", pt: "Qual o tamanho do mercado de RWA tokenizado agora?" } },
+    { i: "✦", en: "Web3 briefing", pt: "Briefing Web3", send: { en: "Give me today's DeFi briefing", pt: "Me dê o briefing de DeFi de hoje" } },
+    { i: "✉", en: "Pharos news", pt: "Notícias da Pharos", send: { en: "What's new on Pharos, and which campaigns are live?", pt: "O que há de novo na Pharos e quais campanhas estão ativas?" } },
+    { i: "$", en: "Buy data (x402)", pt: "Comprar dados (x402)", send: { en: "Buy the Pacific gas market data over x402", pt: "Compre os dados do mercado de gás da Pacific via x402" } },
+  ] },
+  { group: { en: "Safety", pt: "Segurança" }, items: [
+    { i: "⚑", en: "Pre-sign check", pt: "Checar antes de assinar", fill: { en: "Is this safe to sign? to 0x… data 0x…", pt: "Isto é seguro de assinar? to 0x… data 0x…" } },
+    { i: "✎", en: "Signature check", pt: "Checar assinatura", fill: { en: "Check this signature request: ", pt: "Cheque este pedido de assinatura: " } },
+    { i: "⊘", en: "Scan approvals", pt: "Varrer aprovações", send: { en: "Scan my token approvals", pt: "Verifique minhas aprovações de tokens" } },
+    { i: "⌁", en: "Link scanner", pt: "Checar link", fill: { en: "Is this link safe? https://", pt: "Este link é seguro? https://" } },
+    { i: "⌕", en: "Explain a tx", pt: "Explicar transação", fill: { en: "Explain the transaction 0x", pt: "Explique a transação 0x" } },
+  ] },
+];
+
+function renderActions() {
+  const el = $("actions");
+  if (!el) return;
+  const pac = network === "pacific";
+  el.innerHTML = ACTIONS.map((g, gi) => `<h3>${esc(g.group[lang])}</h3>${g.items.map((a, ai) => `<button type="button" data-a="${gi}.${ai}" ${a.pacific && !pac ? `disabled title="${esc(lang === "pt" ? "Na Pacific Mainnet" : "On Pacific Mainnet")}"` : ""}><i aria-hidden="true">${a.i}</i>${esc(a[lang])}</button>`).join("")}`).join("") + `<p class="hint">${esc(lang === "pt" ? (pac ? "Tudo roda pelo agente; você assina na sua carteira." : "Itens apagados estão na Pacific Mainnet — troque no topo.") : pac ? "Everything runs through the agent; you sign in your wallet." : "Greyed items live on Pacific Mainnet — switch at the top.")}</p>`;
+  el.querySelectorAll("button[data-a]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const [gi, ai] = b.dataset.a.split(".").map(Number);
+      const a = ACTIONS[gi].items[ai];
+      if (a.send) return ask(a.send[lang]);
+      $("input").value = a.fill[lang];
+      $("input").focus();
+      $("input").setSelectionRange($("input").value.length, $("input").value.length);
+    }),
+  );
+}
+
+// ─── more cards ────────────────────────────────────────────────────────────────────────────────────────────────
+const num = (x, d = 4) => Number(x).toLocaleString(lang === "pt" ? "pt-BR" : "en-US", { maximumFractionDigits: d });
+
+/** FaroSwap V3 positions, each with Remove / Collect buttons that ask the agent (which prepares the transaction). */
+function renderLp(card) {
+  const el = document.createElement("div");
+  el.className = "check";
+  const pt = lang === "pt";
+  const rows = card.positions
+    .map((p) => {
+      const state = p.pair !== "WPROS/USDC" ? (pt ? "outro par" : "other pair") : p.closed ? (pt ? "fechada" : "closed") : p.inRange ? (pt ? "na faixa" : "in range") : pt ? "fora da faixa" : "out of range";
+      const cls = p.closed || p.pair !== "WPROS/USDC" ? "low" : p.inRange ? "looks_ok" : "caution";
+      const body = p.pair === "WPROS/USDC" ? `${esc(p.wpros ?? "?")} WPROS + ${esc(p.usdc ?? "?")} USDC · ${pt ? "taxas" : "fees"} ${esc(p.feesWpros)} WPROS + ${esc(p.feesUsdc)} USDC` : "";
+      const btns = card.own && p.pair === "WPROS/USDC" && !p.closed ? `<span class="btns"><button class="btn small" data-c="${esc(p.tokenId)}">${pt ? "Coletar" : "Collect"}</button><button class="btn small" data-r="${esc(p.tokenId)}">${pt ? "Retirar" : "Remove"}</button></span>` : "";
+      return `<div><span><b>#${esc(p.tokenId)}</b> ${esc(p.pair)} · ${esc(p.feeLabel)} <span class="verdict ${cls}">${esc(state)}</span></span><small>${pt ? "faixa" : "range"} ${num(p.minPrice)}–${num(p.maxPrice)} USDC/WPROS${p.priceNow ? ` · ${pt ? "agora" : "now"} ${num(p.priceNow)}` : ""}${body ? ` · ${body}` : ""}</small>${btns}</div>`;
+    })
+    .join("");
+  el.innerHTML = `<div class="p-head"><b>${pt ? "Suas posições na FaroSwap V3" : "Your FaroSwap V3 positions"}</b> <span class="muted">${card.count}</span></div><div class="rows">${rows || `<p class="muted" style="margin:0">${pt ? "Nenhuma posição." : "No positions."}</p>`}</div><p class="fine">${pt ? "Valores e taxas simulados como o dono da posição, agora." : "Amounts and fees simulated as the position's owner, right now."}</p>`;
+  el.querySelectorAll("button[data-c]").forEach((b) => b.addEventListener("click", () => ask(pt ? `Colete as taxas da posição #${b.dataset.c}` : `Collect the fees of position #${b.dataset.c}`)));
+  el.querySelectorAll("button[data-r]").forEach((b) => b.addEventListener("click", () => ask(pt ? `Retire 100% da posição #${b.dataset.r} com 0,5% de slippage` : `Remove 100% of position #${b.dataset.r} with 0.5% slippage`)));
+  return el;
+}
+
+function renderRealfi(card) {
+  const el = document.createElement("div");
+  el.className = "check";
+  const pt = lang === "pt";
+  const rows = card.positions.map((p) => `<div><span><b>${esc(p.protocol)}</b> · ${esc(p.balance)} ${esc(p.token)}${p.worth ? ` <span class="muted">≈ ${esc(p.worth)}</span>` : ""}</span><small>${esc(p.type)}${p.note ? ` · ${esc(p.note)}` : ""} · <a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(new URL(p.url).hostname)}</a></small></div>`).join("");
+  el.innerHTML = `<div class="p-head"><b>${pt ? "Posições RealFi / RWA" : "RealFi / RWA positions"}</b></div><div class="rows">${rows || `<p class="muted" style="margin:0">${pt ? `Nenhuma posição entre os ${card.checked} tokens verificados.` : `No position among the ${card.checked} verified tokens.`}</p>`}</div><p class="fine">${pt ? "Registro do ProsPilot, cada token conferido na chain." : "ProsPilot's registry, every token checked on chain."}</p>`;
+  return el;
+}
+
+const PART = { activity: ["Activity", "Atividade"], holdings: ["Holdings", "Patrimônio"], "protocol use": ["Protocol use", "Uso de protocolos"], "approval hygiene": ["Approval hygiene", "Higiene de aprovações"], account: ["Account", "Conta"] };
+const LEVEL = { "power user": "usuário avançado", active: "ativo", "getting started": "começando", "new or inactive": "novo ou inativo" };
+function renderScore(card) {
+  const el = document.createElement("div");
+  el.className = "check";
+  const pt = lang === "pt";
+  el.innerHTML = `<div class="p-head"><b>${pt ? "Score da carteira" : "Wallet score"}</b> <span class="muted">${esc(short(card.wallet))}</span></div><div><span class="big">${card.score}</span><span class="muted">/100 · ${esc(pt ? LEVEL[card.level] ?? card.level : card.level)}</span></div><div class="rows">${card.parts.map((p) => `<div><span>${esc(PART[p.name]?.[pt ? 1 : 0] ?? p.name)} <b>${p.points}/${p.max}</b></span><small>${esc(p.evidence)}</small><span class="btns" style="width:90px"><span class="scorebar" style="width:100%"><i style="width:${Math.round((p.points / p.max) * 100)}%"></i></span></span></div>`).join("")}</div><p class="fine">${pt ? "Cada parte lida na chain agora; descreve atividade e higiene, não identidade." : "Every part read on chain now; it describes activity and hygiene, not identity."}</p>`;
+  return el;
+}
+
+/** x402: the user signs the exact payment (EIP-3009, Atlantic USDC); the page relays it; data + settlement come back. */
+function renderX402(card) {
+  const el = document.createElement("div");
+  el.className = "proposal";
+  const pt = lang === "pt";
+  el.innerHTML = `<div class="p-head"><span class="badge">x402</span><b>${esc(card.label)}</b></div><ul class="lines"><li>${pt ? "Preço" : "Price"}: ${esc(card.price)} USDC (Atlantic) · ${pt ? "para" : "to"} <span class="mono">${esc(short(card.payTo))}</span></li><li>${pt ? "Você assina um pagamento exato (EIP-3009); sem gás para você — o facilitador liquida." : "You sign one exact payment (EIP-3009); no gas for you — the facilitator settles it."}</li></ul>${warnBox("atlantic")}<ol class="steps"></ol><div class="p-result"></div>`;
+  el.querySelector(".steps").appendChild(
+    stepRow(pt ? "Assinar e comprar" : "Sign and buy", pt ? "Assinar" : "Sign", async (li) => {
+      requireWallet();
+      const signature = await wallet.signTypedData(card.typedData, "atlantic");
+      li.querySelector("span").textContent = pt ? "Assinado — liquidando…" : "Signed — settling…";
+      const r = await fetch("/api/x402", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ item: card.item, address: card.address, user: wallet.address, payment: card.payment, typedData: card.typedData, signature }) }).then((x) => x.json());
+      if (!r.paid) throw new Error(r.error ?? (pt ? "o pagamento não foi aceito" : "the payment was not accepted"));
+      li.className = "done";
+      li.querySelector("span").innerHTML = `${pt ? "Pago" : "Paid"} · <a href="${esc(r.explorer)}" target="_blank" rel="noopener">${esc(short(r.transaction))}</a>`;
+      const { paid, ...data } = r.data ?? {};
+      el.querySelector(".p-result").innerHTML = `<div class="x402data">${esc(JSON.stringify(data, null, 1).slice(0, 2500))}</div>`;
+      ask((pt ? "Comprei estes dados via x402, explique o que significam: " : "I bought this data over x402 — explain what it means: ") + JSON.stringify(data).slice(0, 1500));
+    }),
+  );
+  return el;
+}
+
 // ─── boot ──────────────────────────────────────────────────────────────────────────────────────────────────────
+// the pages (Trade, Network, Ecosystem, News) link here with ?ask=…&net=…: open on that network and ask at once
+const params = new URLSearchParams(location.search);
+if (["atlantic", "pacific"].includes(params.get("net"))) {
+  network = params.get("net");
+  try { localStorage.setItem("network", network); } catch {}
+}
 applyLang();
-loadInfo().catch(() => {});
+loadInfo()
+  .catch(() => {})
+  .then(() => {
+    const q = params.get("ask")?.trim();
+    if (q) {
+      history.replaceState(null, "", "/");
+      ask(q.slice(0, 2000));
+    }
+  });
 loadRates();

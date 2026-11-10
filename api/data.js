@@ -1,11 +1,43 @@
 import { isAddress } from "viem";
-import { openChain } from "../lib/chain.js";
+import { RpcReader, openChain } from "../lib/chain.js";
+import { poolStates } from "../lib/defi.js";
 import { MODEL } from "../lib/agent.js";
 import { OPENAI_MODEL } from "../lib/agent-openai.js";
 import { provider } from "./agent.js";
 import { DEFAULT_NETWORK, NETWORKS, PERMIT2, explorerAddress, knownTokens, net, withNetwork } from "../lib/config.js";
 import { vaultRates, walletOverview } from "../lib/reads.js";
 import { verifyExecution } from "../lib/verify.js";
+import { createPublicClient, http } from "viem";
+import ECOSYSTEM from "../lib/ecosystem.json" with { type: "json" };
+import { prosHistory, prosMarket } from "../lib/market.js";
+import { pool } from "../lib/pool.js";
+import { prospilotData } from "../lib/prospilot.js";
+
+const memo = new Map();
+/** A short server-side cache: one RPC round per window for every visitor (public RPCs throttle bursts). */
+async function cached(key, ttl, fn) {
+  const hit = memo.get(key);
+  if (hit && Date.now() - hit.at < ttl) return hit.value;
+  const value = await fn();
+  memo.set(key, { at: Date.now(), value });
+  return value;
+}
+
+/** Live network stats straight from the public RPC: head, block time and TPS over the last 10 blocks, gas price. */
+async function networkHealth(n) {
+  const c = createPublicClient({ transport: http(n.rpc, { retryCount: 2, timeout: 15_000 }) });
+  const head = await c.getBlock();
+  const blocks = [head, ...(await pool(Array.from({ length: 10 }, (_, i) => head.number - BigInt(i + 1)), 4, (n) => c.getBlock({ blockNumber: n })))];
+  const span = Number(blocks[0].timestamp - blocks.at(-1).timestamp);
+  const txs = blocks.slice(0, -1).reduce((s, b) => s + b.transactions.length, 0);
+  const gasPrice = await c.getGasPrice();
+  return {
+    network: n.name, chainId: n.chainId, native: n.native, rpc: n.rpc, explorer: n.explorer, blockNumber: Number(head.number),
+    blockTime: span > 0 ? Number((span / (blocks.length - 1)).toFixed(3)) : null, tps: span > 0 ? Number((txs / span).toFixed(2)) : null,
+    gasPriceGwei: Number(gasPrice) / 1e9, baseFeeGwei: head.baseFeePerGas != null ? Number(head.baseFeePerGas) / 1e9 : null,
+    recent: blocks.slice(0, 10).map((b) => ({ number: Number(b.number), time: Number(b.timestamp), txs: b.transactions.length, gasUsed: Number(b.gasUsed), hash: b.hash })),
+  };
+}
 
 // GET /api/data?kind=info                                both networks: Warden, tokens, protocols, explorer; the model
 // GET /api/data?kind=wallet&address=0x…&network=…       balances, positions, Permit2 approvals, Warden policy
@@ -45,6 +77,40 @@ export default async function handler(req, res) {
     const model = provider() === "openai" ? OPENAI_MODEL : provider() === "anthropic" ? MODEL : null;
     return json(res, 200, { defaultNetwork: DEFAULT_NETWORK, networks: Object.keys(NETWORKS).map(networkInfo), permit2: PERMIT2, model, agentOnline: Boolean(provider()) }, "public, s-maxage=60");
   }
+  // ── the pages (Trade, Network, Ecosystem, News): public data, no wallet ──
+  if (kind === "market") {
+    const [market, history] = await Promise.all([prosMarket(), prosHistory(q.get("days") ?? 7)]);
+    return json(res, 200, { market, history, venues: ECOSYSTEM.venues }, "public, s-maxage=60");
+  }
+  if (kind === "ecosystem") return json(res, 200, ECOSYSTEM, "public, s-maxage=3600");
+  if (kind === "pools") {
+    return withNetwork("pacific", async () => {
+      const chain = new RpcReader(net());
+      try {
+        const pools = await cached("pools", 30_000, () => poolStates(chain));
+        return json(res, 200, { network: net().name, pools: pools.map((p) => ({ fee: p.label, address: p.address, price: p.price, tick: p.tick, liquidity: p.liquidity.toString() })) }, "public, s-maxage=30");
+      } catch (e) {
+        return json(res, 502, { error: `the Pacific RPC did not answer: ${String(e.shortMessage ?? e.message).split("\n")[0].slice(0, 160)}` });
+      }
+    });
+  }
+  if (kind === "feed") {
+    const [news, tweets, campaigns] = await Promise.all([prospilotData("news"), prospilotData("tweets"), prospilotData("campaigns")]);
+    return json(res, 200, { source: "ProsPilot's public API (pharos.xyz blog and news, @pharos_network, Pharos Port campaigns)", news: news.items ?? [], tweets: tweets.tweets ?? [], campaigns: campaigns.campaigns ?? [], available: { news: news.available, tweets: tweets.available, campaigns: campaigns.available } }, "public, s-maxage=300");
+  }
+  if (kind === "charts") {
+    const [charts, rwa] = await Promise.all([prospilotData("charts"), prospilotData("rwa")]);
+    return json(res, 200, { charts, rwa }, "public, s-maxage=600");
+  }
+  if (kind === "health") {
+    const key = q.get("network") ?? DEFAULT_NETWORK;
+    if (!NETWORKS[key]) return json(res, 400, { error: "network must be atlantic or pacific" });
+    try {
+      return json(res, 200, await cached(`health:${key}`, 8_000, () => networkHealth(NETWORKS[key])), "public, s-maxage=5");
+    } catch (e) {
+      return json(res, 502, { error: `the ${NETWORKS[key].short} RPC did not answer: ${String(e.shortMessage ?? e.message).split("\n")[0].slice(0, 160)}` });
+    }
+  }
   const network = q.get("network") ?? (kind === "rates" ? "pacific" : DEFAULT_NETWORK);
   if (!NETWORKS[network]) return json(res, 400, { error: "network must be atlantic or pacific" });
   if (kind === "rates" && network !== "pacific") return json(res, 400, { error: "the USDC vaults are on Pacific Mainnet" });
@@ -64,7 +130,7 @@ export default async function handler(req, res) {
         const user = q.get("user");
         return json(res, 200, { network, ...(await verifyExecution(chain, hash, user && isAddress(user) ? user : null)) });
       }
-      return json(res, 400, { error: "kind must be wallet, rates, verify or info" });
+      return json(res, 400, { error: "kind must be info, wallet, rates, verify, market, ecosystem, pools, feed, charts or health" });
     } catch (e) {
       const source = net().chainSource === "mcp" ? "The Pharos Chain MCP" : `The ${net().short} RPC`;
       return json(res, 502, { error: `${source} did not answer: ${String(e.message).split("\n")[0].slice(0, 200)}` });

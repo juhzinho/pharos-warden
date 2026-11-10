@@ -1,0 +1,626 @@
+{
+ "source": "Official Pharos Port directory (https://port.pharos.xyz/ecosystem), read 2026-11-10; links from ProsPilot's directory",
+ "apps": [
+  {
+   "name": "OKX Wallet",
+   "desc": "The crypto wallet for everything onchain.",
+   "categories": [
+    "Wallet"
+   ],
+   "url": "https://web3.okx.com/",
+   "descPt": "Carteira cripto para tudo onchain",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "TopNod",
+   "desc": "A simple, secure self-custody wallet for managing RWA and other digital assets.",
+   "categories": [
+    "Wallet"
+   ],
+   "url": "https://topnod.com/",
+   "descPt": "Carteira self-custody para RWA e ativos digitais",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Faroswap",
+   "desc": "Pharos-native DEX fueling RWA-Fi with precision & depth.",
+   "categories": [
+    "DEX"
+   ],
+   "url": "https://faroswap.xyz",
+   "descPt": "DEX nativa da Pharos para RWA-Fi (swaps + liquidez V3)",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Circle",
+   "desc": "Circle (NASDAQ: CRCL) is a global fintech and the issuer of USDC, enabling blockchain-based payments and commerce worldwide.",
+   "categories": [
+    "Stable Coin"
+   ],
+   "url": "https://www.circle.com/",
+   "descPt": "Emissor do USDC — USDC nativo + CCTP v2 na Pharos",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "R25",
+   "desc": "R25 is an RWA tokenization protocol that uses IoT and AI to turn solar and EV assets into investable on-chain products.",
+   "categories": [
+    "RWA"
+   ],
+   "url": "https://www.r25.xyz/",
+   "descPt": "Tokeniza ativos solares e de VE com IoT + IA (~$93M TVL, nº 1 da Pharos)",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Prosper",
+   "desc": "Prosper is a public, permissionless, non-custodial launchpad on Pharos, through which Curator can launch its own token through a fair and transparent process. The framework enables onchain trading strategies into liquid, tradable markets.",
+   "categories": [
+    "RWA",
+    "Launchpad"
+   ],
+   "url": "https://port.pharos.xyz/ecosystem",
+   "linkFrom": "official ecosystem page"
+  },
+  {
+   "name": "Accountable",
+   "desc": "The standard for financial verification, providing infrastructure to launch and operate financial products onchain.",
+   "categories": [
+    "RWA"
+   ],
+   "url": "https://port.pharos.xyz/ecosystem",
+   "linkFrom": "official ecosystem page"
+  },
+  {
+   "name": "Asseto",
+   "desc": "Asseto focuses on RWA tokenized fintech companies and is committed to building a next-generation on-chain asset platform.",
+   "categories": [
+    "RWA"
+   ],
+   "url": "https://asseto.finance/",
+   "descPt": "Plataforma on-chain de ativos RWA de nova geração",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "OKU",
+   "desc": "Oku is a premier DeFi aggregator live on 35+ chains offering 0% fees across 14 swap and 11 bridge routers to connect users with S-tier apps in crypto.",
+   "categories": [
+    "Lending"
+   ],
+   "url": "https://oku.trade/",
+   "descPt": "Agregador DeFi em 35+ chains, 0% de taxas",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Morpho",
+   "desc": "Morpho is a lending protocol combining Compound/Aave-style pools with peer-to-peer orderbook-style matching.",
+   "categories": [
+    "Lending"
+   ],
+   "url": "https://morpho.org/",
+   "descPt": "Lending: pools + matching P2P estilo orderbook",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Agra",
+   "desc": "The exchange for onchain credit, built for trading and financing tokenized credit.",
+   "categories": [
+    "DEX"
+   ],
+   "url": "https://bonds.agra.gg/",
+   "descPt": "Exchange de crédito onchain e títulos tokenizados",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Anvita Mate",
+   "desc": "Professional Workbench with AI Agents Built In.",
+   "categories": [
+    "AI"
+   ],
+   "url": "https://port.pharos.xyz/ecosystem",
+   "linkFrom": "official ecosystem page"
+  },
+  {
+   "name": "LayerZero",
+   "desc": "LayerZero is an Omnichain Interoperability Protocol designed for lightweight message passing across chains.",
+   "categories": [
+    "Bridge"
+   ],
+   "url": "https://layerzero.network/",
+   "descPt": "Protocolo de interoperabilidade omnichain",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "LI.FI",
+   "desc": "LI.FI is a bridge aggregation protocol with DEX connectivity and cross-chain data messaging capabilities.",
+   "categories": [
+    "Bridge"
+   ],
+   "url": "https://li.fi/",
+   "descPt": "Protocolo agregador de bridges",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Jumper",
+   "desc": "Jumper is a LI.FI-powered cross-chain swap and bridge interface that aggregates liquidity across major chains.",
+   "categories": [
+    "Bridge"
+   ],
+   "url": "https://jumper.exchange",
+   "descPt": "Interface cross-chain de swap e bridge (LI.FI)",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "NewSight",
+   "desc": "Predict Every Headline. Trade What You Know. NewSight is an AI-native newsfeed and prediction market.",
+   "categories": [
+    "Prediction Market"
+   ],
+   "url": "https://port.pharos.xyz/ecosystem",
+   "linkFrom": "official ecosystem page"
+  },
+  {
+   "name": "OneKey",
+   "desc": "OneKey is an open-source cryptocurrency wallet that allows users to securely and conveniently store and use their crypto assets.",
+   "categories": [
+    "Wallet"
+   ],
+   "url": "https://onekey.so/",
+   "descPt": "Carteira cripto open-source",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Fordefi",
+   "desc": "Fordefi is an institutional MPC wallet and security platform that enables institutions to interact across different blockchains.",
+   "categories": [
+    "MPC"
+   ],
+   "url": "https://fordefi.com/",
+   "descPt": "Carteira MPC institucional e plataforma de segurança",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Safe",
+   "desc": "Safe is a smart contract wallet for secure asset management with multisig and modular access controls.",
+   "categories": [
+    "Multisig"
+   ],
+   "url": "https://app.safe.global/",
+   "descPt": "Carteira multisig de smart contract",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Anchorage",
+   "desc": "Anchorage offers institutions integrated digital asset infrastructure, including custody, staking, governance, auditing, proof-of-existence, and trading.",
+   "categories": [
+    "Custodian"
+   ],
+   "url": "https://www.anchorage.com/",
+   "descPt": "Custódia institucional, staking e trading",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Alchemy Pay",
+   "desc": "Alchemy Pay is a payment solutions provider that connects the fiat and crypto economies for global consumers, merchants, developers, and institutions.",
+   "categories": [
+    "On/Off Ramp"
+   ],
+   "url": "https://alchemypay.org/",
+   "descPt": "On/off ramp fiat ↔ cripto",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Chainlink",
+   "desc": "Chainlink is an oracle infrastructure bringing the capital markets onchain and powering the majority of decentralized finance (DeFi).",
+   "categories": [
+    "Oracle",
+    "Bridge"
+   ],
+   "url": "https://chain.link/",
+   "descPt": "Bridge cross-chain + infraestrutura de oráculos",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Supra",
+   "desc": "All-In-One MultiVM Layer 1 Built for Super dApps.",
+   "categories": [
+    "Oracle"
+   ],
+   "url": "https://supra.com/",
+   "descPt": "Infraestrutura de oráculos",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Alchemy",
+   "desc": "Alchemy is a web3 development platform designed to make it easy to build and scale your dApp.",
+   "categories": [
+    "RPC"
+   ],
+   "url": "https://www.alchemy.com/",
+   "descPt": "Plataforma de desenvolvimento Web3",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "ZAN",
+   "desc": "A Suite of Plug-And-Play Tools and Services for Web3 Endeavors.",
+   "categories": [
+    "RPC"
+   ],
+   "url": "https://zan.top/",
+   "descPt": "Ferramentas Web3 e serviços RPC",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Nirvana",
+   "desc": "Nirvana Labs is a Web3 infrastructure solution for building, managing, and supporting any blockchain application.",
+   "categories": [
+    "RPC"
+   ],
+   "url": "https://nirvanalabs.io/",
+   "descPt": "Infraestrutura Web3 para apps blockchain",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Hemera",
+   "desc": "Account-Centric Indexing Network.",
+   "categories": [
+    "Block Explorer"
+   ],
+   "url": "https://www.thehemera.com/",
+   "descPt": "Rede de indexação centrada em contas",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "GoldSky",
+   "desc": "The Fastest, Most Scalable Blockchain Indexing.",
+   "categories": [
+    "Indexer"
+   ],
+   "url": "https://goldsky.com/",
+   "descPt": "Indexação blockchain escalável",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Pharosverse",
+   "desc": "Navigate through the vast ecosystem with the help of Pharosverse - the hub for insights, projects, and community power.",
+   "categories": [
+    "Navigator"
+   ],
+   "url": "https://pharosverse.xyz",
+   "descPt": "Navegador do ecossistema: insights, projetos, comunidade",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Trusta Labs",
+   "desc": "Trusta Labs focuses on Web3 security infrastructure, aiming to bring more valuable users to the Web3 world.",
+   "categories": [
+    "Data Analytics"
+   ],
+   "url": "https://www.trustalabs.ai/",
+   "descPt": "Segurança Web3 e análise de dados",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Hypernative",
+   "desc": "Hypernative protects Web3 protocols and asset managers by detecting and stopping zero-day, economic, and governance threats before losses occur.",
+   "categories": [
+    "Security"
+   ],
+   "url": "https://www.hypernative.io/",
+   "descPt": "Detecção e prevenção de ameaças em tempo real",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Zellic",
+   "desc": "Zellic is a blockchain security audit and consulting company, founded in 2020.",
+   "categories": [
+    "Security"
+   ],
+   "url": "https://www.zellic.io/",
+   "descPt": "Auditorias de segurança blockchain",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "ExVul Security",
+   "desc": "ExVul is a Web3 security firm providing smart contract and blockchain protocol audits, wallet audits, Web3 penetration testing, and security consulting.",
+   "categories": [
+    "Security"
+   ],
+   "url": "https://exvul.com/",
+   "descPt": "Auditorias de contratos e pen testing",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "OpenZeppelin",
+   "desc": "OpenZeppelin is a crypto cybersecurity technology and services company.",
+   "categories": [
+    "Security"
+   ],
+   "url": "https://www.openzeppelin.com/",
+   "descPt": "Tecnologia de cibersegurança cripto",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "TRM",
+   "desc": "TRM provides crypto compliance and risk management tools to help institutions and agencies detect, investigate, and prevent financial crime.",
+   "categories": [
+    "KYT"
+   ],
+   "url": "https://www.trmlabs.com/",
+   "descPt": "Compliance cripto e gestão de risco (KYT)",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "PNS",
+   "desc": "Official Domain of Pharos.",
+   "categories": [
+    "DID"
+   ],
+   "url": "https://pharosname.com",
+   "descPt": "Serviço oficial de domínios .pharos",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Grandline",
+   "desc": "Native Platform for Launching and Trading NFTs.",
+   "categories": [
+    "NFT"
+   ],
+   "url": "https://app.grandline.world",
+   "descPt": "Plataforma nativa de lançamento e trading de NFTs",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Kucoin Wallet",
+   "desc": "Find on‑chain alpha with KuCoin Web3 Wallet.",
+   "categories": [
+    "Wallet"
+   ],
+   "url": "https://www.kucoin.com/web3",
+   "descPt": "Carteira Web3 da KuCoin",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "ZNS Connect",
+   "desc": "The Identity Layer of Web3 Multi-chain domains, GM + Deploy tools & AI-powered interaction.",
+   "categories": [
+    "DID"
+   ],
+   "url": "https://zns.bio/",
+   "descPt": "Camada de identidade Web3, domínios multi-chain",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Zona",
+   "desc": "Deposit RWAs and unlock idle liquidity.",
+   "categories": [
+    "RWA"
+   ],
+   "url": "https://www.zona.finance/",
+   "descPt": "Deposite RWAs e desbloqueie liquidez parada",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Faroo",
+   "desc": "Powering Pharos Network with Liquid Staking & RWA Yields. Unlock Pharos mainnet token liquidity, amplify returns, and lead the ecosystem.",
+   "categories": [
+    "Lending"
+   ],
+   "url": "https://app.faroo.xyz/",
+   "descPt": "Liquid staking: PROS → stPROS com yield de staking + RWA",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "InterPort",
+   "desc": "Pushing boundaries for seamless DeFi operations in Pharos Ecosystem. Interport empowers traders with fast cross-chain swaps & bridge at the best rates.",
+   "categories": [
+    "Bridge"
+   ],
+   "url": "https://interport.fi/",
+   "descPt": "Swaps e bridge cross-chain rápidos",
+   "linkFrom": "ProsPilot directory"
+  },
+  {
+   "name": "Ember",
+   "desc": "An unified vault platform that tokenises any yield or fund strategy.",
+   "categories": [
+    "Vault"
+   ],
+   "url": "https://ember.so/earn",
+   "descPt": "Plataforma de vaults que tokeniza estratégias de yield",
+   "linkFrom": "ProsPilot directory"
+  }
+ ],
+ "categories": [
+  {
+   "name": "Wallet",
+   "apps": [
+    "OKX Wallet",
+    "TopNod",
+    "OneKey",
+    "Kucoin Wallet"
+   ]
+  },
+  {
+   "name": "DEX",
+   "apps": [
+    "Faroswap",
+    "Agra"
+   ]
+  },
+  {
+   "name": "Stable Coin",
+   "apps": [
+    "Circle"
+   ]
+  },
+  {
+   "name": "RWA",
+   "apps": [
+    "R25",
+    "Prosper",
+    "Accountable",
+    "Asseto",
+    "Zona"
+   ]
+  },
+  {
+   "name": "Launchpad",
+   "apps": [
+    "Prosper"
+   ]
+  },
+  {
+   "name": "Lending",
+   "apps": [
+    "OKU",
+    "Morpho",
+    "Faroo"
+   ]
+  },
+  {
+   "name": "AI",
+   "apps": [
+    "Anvita Mate"
+   ]
+  },
+  {
+   "name": "Bridge",
+   "apps": [
+    "LayerZero",
+    "LI.FI",
+    "Jumper",
+    "Chainlink",
+    "InterPort"
+   ]
+  },
+  {
+   "name": "Prediction Market",
+   "apps": [
+    "NewSight"
+   ]
+  },
+  {
+   "name": "MPC",
+   "apps": [
+    "Fordefi"
+   ]
+  },
+  {
+   "name": "Multisig",
+   "apps": [
+    "Safe"
+   ]
+  },
+  {
+   "name": "Custodian",
+   "apps": [
+    "Anchorage"
+   ]
+  },
+  {
+   "name": "On/Off Ramp",
+   "apps": [
+    "Alchemy Pay"
+   ]
+  },
+  {
+   "name": "Oracle",
+   "apps": [
+    "Chainlink",
+    "Supra"
+   ]
+  },
+  {
+   "name": "RPC",
+   "apps": [
+    "Alchemy",
+    "ZAN",
+    "Nirvana"
+   ]
+  },
+  {
+   "name": "Block Explorer",
+   "apps": [
+    "Hemera"
+   ]
+  },
+  {
+   "name": "Indexer",
+   "apps": [
+    "GoldSky"
+   ]
+  },
+  {
+   "name": "Navigator",
+   "apps": [
+    "Pharosverse"
+   ]
+  },
+  {
+   "name": "Data Analytics",
+   "apps": [
+    "Trusta Labs"
+   ]
+  },
+  {
+   "name": "Security",
+   "apps": [
+    "Hypernative",
+    "Zellic",
+    "ExVul Security",
+    "OpenZeppelin"
+   ]
+  },
+  {
+   "name": "KYT",
+   "apps": [
+    "TRM"
+   ]
+  },
+  {
+   "name": "DID",
+   "apps": [
+    "PNS",
+    "ZNS Connect"
+   ]
+  },
+  {
+   "name": "NFT",
+   "apps": [
+    "Grandline"
+   ]
+  },
+  {
+   "name": "Vault",
+   "apps": [
+    "Ember"
+   ]
+  }
+ ],
+ "venues": [
+  {
+   "name": "Bitget",
+   "url": "https://www.bitget.com/spot/PROSUSDT"
+  },
+  {
+   "name": "OKX",
+   "url": "https://www.okx.com/trade-spot/pros-usdt"
+  },
+  {
+   "name": "Binance Alpha",
+   "url": "https://www.binance.com/en/alpha"
+  },
+  {
+   "name": "CoinMarketCap",
+   "url": "https://coinmarketcap.com/currencies/pharos/"
+  },
+  {
+   "name": "SoSoValue",
+   "url": "https://sosovalue.com/coins/pharos"
+  },
+  {
+   "name": "CoinGecko",
+   "url": "https://www.coingecko.com/en/coins/pharos-network"
+  }
+ ]
+}

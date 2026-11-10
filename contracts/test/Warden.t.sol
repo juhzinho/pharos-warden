@@ -38,6 +38,28 @@ interface IRouteProxy {
     ) external payable returns (uint256);
 }
 
+interface INpm {
+    struct MintParams {
+        address token0;
+        address token1;
+        uint24 fee;
+        int24 tickLower;
+        int24 tickUpper;
+        uint256 amount0Desired;
+        uint256 amount1Desired;
+        uint256 amount0Min;
+        uint256 amount1Min;
+        address recipient;
+        uint256 deadline;
+    }
+
+    function mint(MintParams calldata params) external payable returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
+    function balanceOf(address owner) external view returns (uint256);
+    function ownerOf(uint256 tokenId) external view returns (address);
+    function multicall(bytes[] calldata data) external payable returns (bytes[] memory results);
+    function setApprovalForAll(address operator, bool approved) external;
+}
+
 interface IAavePool {
     function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
 }
@@ -80,7 +102,7 @@ contract WardenTest is Test, PacificConfig {
         pa[1] = 50 ether;
         pd[1] = 100 ether;
         vm.prank(user);
-        warden.configure(tokens, pa, pd, uint32(0xF), false, 0);
+        warden.configure(tokens, pa, pd, uint32(0x3F), false, 0);
     }
 
     function _intent() internal view returns (Warden.Intent memory it) {
@@ -179,7 +201,13 @@ contract WardenTest is Test, PacificConfig {
     // ─── deployment ─────────────────────────────────────────────────────────────────────────────────────────────
 
     function test_allowlistIsFixedAtDeployment() public view {
-        assertEq(warden.protocolCount(), 4);
+        assertEq(warden.protocolCount(), 6);
+        assertEq(warden.protocolNames(5), "FaroSwap V3 liquidity");
+        assertEq(warden.targetProtocol(FAROSWAP_NPM), 6);
+        assertEq(warden.spenderProtocol(FAROSWAP_NPM), 6);
+        assertEq(warden.protocolNames(4), "Faroo stPROS");
+        assertEq(warden.targetProtocol(FAROO_STPROS), 5);
+        assertEq(warden.spenderProtocol(FAROO_STPROS), 5);
         assertEq(warden.protocolNames(0), "FaroSwap");
         assertEq(warden.targetProtocol(FAROSWAP_ROUTE_PROXY), 1);
         assertEq(warden.spenderProtocol(FAROSWAP_DODO_APPROVE), 1);
@@ -221,6 +249,73 @@ contract WardenTest is Test, PacificConfig {
         assertGe(IERC20Full(MORPHO_ROCKAWAYX).balanceOf(user) - before, shares * 9999 / 10000);
         assertEq(IERC20Full(MORPHO_ROCKAWAYX).allowance(address(warden), MORPHO_ROCKAWAYX), 0);
         _assertWardenEmpty();
+    }
+
+    function test_stakeWprosWithFarooStprosGoesToTheUser() public {
+        _policy(100e6, 300e6);
+        uint256 shares = IVault(FAROO_STPROS).previewDeposit(10 ether);
+        Warden.Intent memory it = _intent();
+        it.approvals = new Warden.Approval[](1);
+        it.approvals[0] = Warden.Approval(WPROS, FAROO_STPROS, 10 ether);
+        it.calls = new Warden.Call[](1);
+        it.calls[0] = Warden.Call(FAROO_STPROS, abi.encodeCall(IVault.deposit, (10 ether, user)));
+        it.outs = new Warden.Out[](1);
+        it.outs[0] = Warden.Out(FAROO_STPROS, shares * 9999 / 10000);
+        uint256 before = IERC20Full(FAROO_STPROS).balanceOf(user);
+        _run(it, _permit(WPROS, 10 ether));
+        assertGe(IERC20Full(FAROO_STPROS).balanceOf(user) - before, shares * 9999 / 10000);
+        assertEq(IERC20Full(FAROO_STPROS).balanceOf(address(warden)), 0, "warden holds stPROS");
+        assertEq(IERC20Full(WPROS).allowance(address(warden), FAROO_STPROS), 0, "approval left");
+        _assertWardenEmpty();
+    }
+
+function test_addFaroSwapLiquidityPositionNftGoesToTheUser() public {
+        _policy(100e6, 300e6);
+        // full range on the 0.30% WPROS/USDC pool (tick spacing 60); WPROS is token0
+        INpm.MintParams memory mp = INpm.MintParams(WPROS, USDC, 3000, -887220, 887220, 10 ether, 6e6, 0, 0, user, block.timestamp + 600);
+        Warden.Intent memory it = _intent();
+        it.approvals = new Warden.Approval[](2);
+        it.approvals[0] = Warden.Approval(WPROS, FAROSWAP_NPM, 10 ether);
+        it.approvals[1] = Warden.Approval(USDC, FAROSWAP_NPM, 6e6);
+        it.calls = new Warden.Call[](1);
+        it.calls[0] = Warden.Call(FAROSWAP_NPM, abi.encodeCall(INpm.mint, (mp)));
+        it.outs = new Warden.Out[](1);
+        it.outs[0] = Warden.Out(FAROSWAP_NPM, 1); // one more position NFT in the user's wallet
+        ISignatureTransfer.PermitBatchTransferFrom memory p = _permit(WPROS, 10 ether);
+        ISignatureTransfer.TokenPermissions[] memory two = new ISignatureTransfer.TokenPermissions[](2);
+        two[0] = p.permitted[0];
+        two[1] = ISignatureTransfer.TokenPermissions(USDC, 6e6);
+        p.permitted = two;
+        uint256 nftsBefore = INpm(FAROSWAP_NPM).balanceOf(user);
+        uint256 wprosBefore = IERC20Full(WPROS).balanceOf(user);
+        uint256 usdcBefore = IERC20Full(USDC).balanceOf(user);
+        _run(it, p);
+        assertEq(INpm(FAROSWAP_NPM).balanceOf(user), nftsBefore + 1, "position NFT to the user");
+        assertEq(INpm(FAROSWAP_NPM).balanceOf(address(warden)), 0, "warden holds no NFT");
+        // only what the position needed left the wallet: the rest of the signed inputs came back
+        assertLe(wprosBefore - IERC20Full(WPROS).balanceOf(user), 10 ether);
+        assertLe(usdcBefore - IERC20Full(USDC).balanceOf(user), 6e6);
+        assertEq(IERC20Full(WPROS).allowance(address(warden), FAROSWAP_NPM), 0, "WPROS approval left");
+        assertEq(IERC20Full(USDC).allowance(address(warden), FAROSWAP_NPM), 0, "USDC approval left");
+        _assertWardenEmpty();
+    }
+
+    function test_nftMovesAndBatchCallsAreRefusedEvenOnAllowlistedContracts() public {
+        _policy(100e6, 300e6);
+        bytes[] memory inner = new bytes[](0);
+        bytes[2] memory bad = [abi.encodeCall(INpm.multicall, (inner)), abi.encodeCall(INpm.setApprovalForAll, (address(0xBAD), true))];
+        for (uint256 i; i < 2; ++i) {
+            Warden.Intent memory it = _intent();
+            it.calls = new Warden.Call[](1);
+            it.calls[0] = Warden.Call(FAROSWAP_NPM, bad[i]);
+            it.outs = new Warden.Out[](1);
+            it.outs[0] = Warden.Out(USDC, 0);
+            ISignatureTransfer.PermitBatchTransferFrom memory p = _permit(USDC, 1e6);
+            bytes memory sig = _sign(p, warden.witnessOf(it), userKey);
+            vm.prank(user);
+            vm.expectRevert(abi.encodeWithSelector(Warden.SelectorNotAllowed.selector, bytes4(bad[i])));
+            warden.execute(it, p, sig);
+        }
     }
 
     function test_supplyToAvalonATokensGoToTheUser() public {

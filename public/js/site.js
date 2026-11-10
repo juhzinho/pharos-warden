@@ -1,0 +1,164 @@
+// The four pages beside the agent: Trade, Network, Ecosystem, News. Every number comes from a live source named on
+// the page (Pharos RPC, CoinGecko, the official Pharos Port directory, ProsPilot's public API); every page ends in the
+// agent, which is where things get done.
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+let lang = (() => {
+  try {
+    return localStorage.getItem("lang") || (navigator.language?.startsWith("pt") ? "pt" : "en");
+  } catch {
+    return "en";
+  }
+})();
+const L = (en, pt) => (lang === "pt" ? pt : en);
+const loc = () => (lang === "pt" ? "pt-BR" : "en-US");
+const n = (x, d = 2) => Number(x).toLocaleString(loc(), { maximumFractionDigits: d, minimumFractionDigits: Math.min(d, 2) > 0 && Math.abs(x) < 1000 ? Math.min(d, 2) : 0 });
+const usd = (x) => (x >= 1e9 ? `$${n(x / 1e9, 2)}B` : x >= 1e6 ? `$${n(x / 1e6, 2)}M` : x >= 1e3 ? `$${n(x / 1e3, 1)}K` : `$${n(x, 4)}`);
+const short = (a) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+const agentLink = (q, net) => `/?${new URLSearchParams({ ask: q, ...(net && { net }) })}`;
+const page = document.body.dataset.page;
+const get = (q) => fetch(`/api/data?${q}`, { signal: AbortSignal.timeout(45_000) }).then(async (r) => {
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error ?? `HTTP ${r.status}`);
+  return j;
+});
+
+// ─── header ────────────────────────────────────────────────────────────────────────────────────────────────────
+function header() {
+  const links = [["/", L("Agent", "Agente"), "agent"], ["/trade", "Trade", "trade"], ["/network", L("Network", "Rede"), "network"], ["/ecosystem", L("Ecosystem", "Ecossistema"), "ecosystem"], ["/news", L("News", "Notícias"), "news"]];
+  $("top").innerHTML = `<div class="wrap top-row">
+    <a class="brand" href="/" aria-label="Pharos Warden"><svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><rect width="32" height="32" rx="7" fill="var(--brand)"/><path d="M16 6l8 3v6c0 5.5-3.4 9.6-8 11-4.6-1.4-8-5.5-8-11V9z" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 16l2.6 2.6 4.6-5" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Pharos <b>Warden</b></span></a>
+    <nav class="nav" aria-label="Pages">${links.map(([h, t, k]) => `<a href="${h}"${k === page ? ' aria-current="page"' : ""}>${esc(t)}</a>`).join("")}</nav>
+    <div class="top-actions"><div class="lang" role="group" aria-label="Language"><button data-lang="en" aria-pressed="${lang === "en"}">EN</button><button data-lang="pt" aria-pressed="${lang === "pt"}">PT</button></div><a class="btn primary" href="/">${esc(L("Open the agent", "Abrir o agente"))}</a></div>
+  </div>`;
+  document.querySelectorAll("[data-lang]").forEach((b) =>
+    b.addEventListener("click", () => {
+      lang = b.dataset.lang;
+      try {
+        localStorage.setItem("lang", lang);
+      } catch {}
+      document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+      header();
+      render();
+    }),
+  );
+}
+
+/** A simple line chart (SVG, no library): values over time, the last value labelled. */
+function lineChart(points, { height = 160, format = (v) => n(v) } = {}) {
+  if (!points?.length) return `<p class="muted">${esc(L("No data.", "Sem dados."))}</p>`;
+  const W = 640;
+  const H = height;
+  const xs = points.map((p) => p[0]);
+  const ys = points.map((p) => p[1]);
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  const X = (x) => ((x - x0) / (x1 - x0 || 1)) * (W - 8) + 4;
+  const Y = (y) => H - 18 - ((y - y0) / (y1 - y0 || 1)) * (H - 36);
+  const d = points.map((p, i) => `${i ? "L" : "M"}${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join("");
+  const area = `${d}L${X(x1).toFixed(1)},${H - 18}L${X(x0).toFixed(1)},${H - 18}Z`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(L("chart", "gráfico"))}"><path d="${area}" class="area"/><path d="${d}" class="line"/><text x="${W - 4}" y="12" text-anchor="end">${esc(format(ys.at(-1)))}</text><text x="4" y="${H - 4}">${esc(new Date(x0).toLocaleDateString(loc()))}</text><text x="${W - 4}" y="${H - 4}" text-anchor="end">${esc(new Date(x1).toLocaleDateString(loc()))}</text><text x="4" y="12">${esc(L("min", "mín"))} ${esc(format(y0))} · ${esc(L("max", "máx"))} ${esc(format(y1))}</text></svg>`;
+}
+
+const fail = (e) => `<p class="msg err">${esc(e.message ?? e)}</p>`;
+
+// ─── Trade ─────────────────────────────────────────────────────────────────────────────────────────────────────
+let days = 7;
+async function trade() {
+  $("main").innerHTML = `<section class="hero wrap"><p class="eyebrow">TRADE</p><h1>${esc(L("$PROS, live", "$PROS, ao vivo"))}</h1><p class="lead">${esc(L("The market price from CoinGecko next to the price inside each FaroSwap pool on Pharos — and the agent to trade with a guarantee.", "O preço de mercado da CoinGecko ao lado do preço dentro de cada pool da FaroSwap na Pharos — e o agente para negociar com garantia."))}</p></section>
+  <div class="wrap pagegrid"><section class="card pad"><div id="price">…</div><div class="tabs" id="ranges"></div><div id="chart"></div></section>
+  <section class="card pad"><h2>${esc(L("FaroSwap WPROS/USDC pools", "Pools WPROS/USDC da FaroSwap"))}</h2><div id="pools" class="muted">…</div><p class="fine">${esc(L("Read on chain (Pacific RPC). A pool far from the market price means a worse deal there.", "Lido na chain (RPC da Pacific). Um pool longe do preço de mercado significa um negócio pior ali."))}</p></section>
+  <section class="card pad"><h2>${esc(L("Trade & track $PROS", "Negocie e acompanhe $PROS"))}</h2><div id="venues" class="venues"></div></section>
+  <section class="card pad"><h2>${esc(L("Trade on chain with the agent", "Negocie na chain com o agente"))}</h2><p class="muted">${esc(L("Quote, price impact, the pool vs the market, a dry run — then one signature, and Warden reverts unless you receive at least the minimum.", "Cotação, impacto de preço, pool vs mercado, simulação — depois uma assinatura, e o Warden reverte se você não receber no mínimo o combinado."))}</p><div class="chips">${[L("Swap 5 USDC to WPROS", "Troque 5 USDC por WPROS"), L("Stake 10 PROS with Faroo", "Faça stake de 10 PROS na Faroo"), L("Add liquidity to the 0.30% WPROS/USDC pool", "Adicione liquidez no pool WPROS/USDC de 0,30%")].map((q) => `<a class="chip" href="${esc(agentLink(q, "pacific"))}">${esc(q)}</a>`).join("")}</div></section></div>`;
+  $("ranges").innerHTML = [[1, "24H"], [7, "7D"], [30, "30D"]].map(([d, t]) => `<button data-d="${d}" aria-pressed="${d === days}">${t}</button>`).join("");
+  $("ranges").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { days = Number(b.dataset.d); trade(); }));
+  get(`kind=market&days=${days}`).then((j) => {
+    const m = j.market;
+    $("price").innerHTML = m.available ? `<div class="stat-row"><div><span class="muted">PROS / USD</span><b class="big">$${n(m.price, 4)}</b></div><div><span class="muted">24h</span><b class="${m.change24h >= 0 ? "up" : "down"}">${m.change24h >= 0 ? "+" : ""}${n(m.change24h, 2)}%</b></div><div><span class="muted">${esc(L("Market cap", "Market cap"))}</span><b>${usd(m.marketCap)}</b></div><div><span class="muted">${esc(L("24h volume", "Volume 24h"))}</span><b>${usd(m.volume24h)}</b></div></div><p class="fine">CoinGecko · ${esc(new Date(m.updatedAt).toLocaleString(loc()))}</p>` : fail(m.error);
+    $("chart").innerHTML = j.history.available ? lineChart(j.history.points, { format: (v) => `$${n(v, 4)}` }) : fail(j.history.error);
+    $("venues").innerHTML = j.venues.map((v) => `<a class="venue" href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.name)} ↗</a>`).join("");
+    get("kind=pools").then((p) => {
+      $("pools").className = "";
+      $("pools").innerHTML = `<div class="rows">${p.pools.map((x) => { const dev = m.available ? ((x.price - m.price) / m.price) * 100 : null; return `<div><span><b>${esc(x.fee)}</b> · $${n(x.price, 4)} ${dev != null ? `<span class="verdict ${Math.abs(dev) >= 3 ? "caution" : "looks_ok"}">${dev >= 0 ? "+" : ""}${n(dev, 2)}% ${esc(L("vs market", "vs mercado"))}</span>` : ""}</span><small><a href="https://www.pharosscan.xyz/address/${esc(x.address)}" target="_blank" rel="noopener">${esc(short(x.address))}</a> · ${esc(L("liquidity", "liquidez"))} ${esc(Number(x.liquidity).toExponential(2))}</small></div>`; }).join("")}</div>`;
+    }).catch((e) => ($("pools").innerHTML = fail(e)));
+  }).catch((e) => ($("price").innerHTML = fail(e)));
+}
+
+// ─── Network ───────────────────────────────────────────────────────────────────────────────────────────────────
+let netKey = new URLSearchParams(location.search).get("net") === "atlantic" ? "atlantic" : "pacific";
+let timer = null;
+async function network() {
+  clearInterval(timer);
+  $("main").innerHTML = `<section class="hero wrap"><p class="eyebrow">${esc(L("NETWORK", "REDE"))}</p><h1>${esc(L("Pharos network health", "Saúde da rede Pharos"))}</h1><p class="lead">${esc(L("Live from the public RPC, every 10 seconds — verifiable on the explorer at any time.", "Ao vivo do RPC público, a cada 10 segundos — verificável no explorador a qualquer hora."))}</p><div class="tabs" id="nets"><button data-n="pacific" aria-pressed="${netKey === "pacific"}">Pacific Mainnet</button><button data-n="atlantic" aria-pressed="${netKey === "atlantic"}">Atlantic Testnet</button></div></section>
+  <div class="wrap pagegrid"><section class="card pad"><div id="stats">…</div></section><section class="card pad"><h2>${esc(L("Recent blocks", "Blocos recentes"))}</h2><div id="blocks" class="muted">…</div></section><section class="card pad"><h2>${esc(L("Chain parameters", "Parâmetros da chain"))}</h2><div id="params" class="kv"></div></section><section class="card pad wide"><h2>${esc(L("Charts & statistics · Pacific", "Gráficos e estatísticas · Pacific"))}</h2><div id="charts" class="charts muted">…</div><p class="fine" id="chartsrc"></p></section></div>`;
+  $("nets").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { netKey = b.dataset.n; history.replaceState(null, "", `/network?net=${netKey}`); network(); }));
+  const info = await get("kind=info").catch(() => null);
+  const ni = info?.networks.find((x) => x.key === netKey);
+  if (ni) $("params").innerHTML = [[L("Network", "Rede"), ni.name], ["Chain ID", ni.chainId], [L("Native token", "Token nativo"), ni.native], ["RPC", ni.rpc], [L("Explorer", "Explorador"), `<a href="${esc(ni.explorer)}" target="_blank" rel="noopener">${esc(new URL(ni.explorer).host)}</a>`], ["Warden", `<a href="${esc(ni.wardenExplorer)}" target="_blank" rel="noopener">${esc(short(ni.warden))}</a>`], [L("Chain reads", "Leituras"), ni.chainSource]].map(([k, v]) => `<div><span>${esc(k)}</span><b>${typeof v === "string" && v.startsWith("<a") ? v : esc(v)}</b></div>`).join("");
+  const tick = () => get(`kind=health&network=${netKey}`).then((h) => {
+    if (page !== "network") return;
+    $("stats").innerHTML = `<div class="stat-row"><div><span class="muted">${esc(L("Block height", "Altura do bloco"))}</span><b class="big">${n(h.blockNumber, 0)}</b></div><div><span class="muted">${esc(L("Avg block time", "Tempo médio de bloco"))}</span><b>${h.blockTime != null ? `${n(h.blockTime, 2)} s` : "—"}</b><small class="muted">${esc(L("last 10 blocks", "últimos 10 blocos"))}</small></div><div><span class="muted">${esc(L("Gas price", "Preço do gás"))}</span><b>${n(h.gasPriceGwei, 2)} gwei</b></div><div><span class="muted">TPS</span><b>${h.tps != null ? n(h.tps, 2) : "—"}</b><small class="muted">${esc(L("recent sample", "amostra recente"))}</small></div></div>`;
+    $("blocks").className = "";
+    $("blocks").innerHTML = `<div class="rows">${h.recent.map((b) => `<div><span><a href="${esc(h.explorer)}/block/${b.number}" target="_blank" rel="noopener">#${n(b.number, 0)}</a> · ${b.txs} tx</span><small>${esc(new Date(b.time * 1000).toLocaleTimeString(loc()))} · ${esc(L("gas used", "gás usado"))} ${n(b.gasUsed, 0)}</small></div>`).join("")}</div>`;
+  }).catch((e) => ($("stats").innerHTML = fail(e)));
+  tick();
+  timer = setInterval(tick, 10_000);
+  get("kind=charts").then((c) => {
+    const pick = ["daily_txns", "active_addresses", "defi_tvl", "avg_txn_fee", "block_time", "total_addresses"];
+    const series = (c.charts.series ?? []).filter((s) => pick.includes(s.id));
+    $("charts").className = "charts";
+    $("charts").innerHTML = series.map((s) => `<div><h3>${esc(s.title)}${s.unit ? ` <span class="muted">(${esc(s.unit)})</span>` : ""}</h3>${lineChart(s.points.slice(-90).map((p) => [Date.parse(p.date), p.value]), { height: 120, format: (v) => (s.unit === "USD" ? usd(v) : n(v, s.unit === "PROS" ? 6 : 2)) })}</div>`).join("");
+    $("chartsrc").textContent = L("Daily metrics of Pacific Mainnet (SocialScan charts, DeFi TVL from DefiLlama), through ProsPilot's public API · last 90 days.", "Métricas diárias da Pacific Mainnet (gráficos SocialScan, TVL DeFi do DefiLlama), pela API pública do ProsPilot · últimos 90 dias.");
+  }).catch((e) => ($("charts").innerHTML = fail(e)));
+}
+
+// ─── Ecosystem ─────────────────────────────────────────────────────────────────────────────────────────────────
+let eco = null;
+let cat = "all";
+let query = "";
+async function ecosystem() {
+  eco ??= await get("kind=ecosystem").catch((e) => ({ error: e }));
+  if (eco.error) return ($("main").innerHTML = fail(eco.error));
+  const shown = eco.apps.filter((a) => (cat === "all" || a.categories.includes(cat)) && (!query || `${a.name} ${a.desc}`.toLowerCase().includes(query)));
+  $("main").innerHTML = `<section class="hero wrap"><p class="eyebrow">${esc(L("ECOSYSTEM", "ECOSSISTEMA"))}</p><h1>${esc(L("Everything built on Pharos", "Tudo o que é construído na Pharos"))}</h1><p class="lead">${esc(L(`${eco.apps.length} active projects from the official Pharos Port directory — the same list the agent answers from.`, `${eco.apps.length} projetos ativos do diretório oficial do Pharos Port — a mesma lista que o agente usa.`))}</p></section>
+  <div class="wrap"><div class="filters"><input id="q" type="search" placeholder="${esc(L("Search projects…", "Buscar projetos…"))}" value="${esc(query)}"><div class="tabs wrapgap"><button data-c="all" aria-pressed="${cat === "all"}">${esc(L("All", "Todos"))} ${eco.apps.length}</button>${eco.categories.map((c) => `<button data-c="${esc(c.name)}" aria-pressed="${cat === c.name}">${esc(c.name)} ${c.apps.length}</button>`).join("")}</div></div>
+  <div class="apps">${shown.map((a) => `<article class="card app"><div class="app-head"><span class="logo" aria-hidden="true">${esc(a.name[0])}</span><div><b>${esc(a.name)}</b><small>${esc(a.categories.join(" · "))}</small></div></div><p>${esc(lang === "pt" && a.descPt ? a.descPt : a.desc)}</p><div class="app-foot"><a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(L("Visit", "Visitar"))} ↗</a><a href="${esc(agentLink(L(`What is ${a.name} on Pharos, and is ${new URL(a.url).hostname} its official link?`, `O que é ${a.name} na Pharos, e ${new URL(a.url).hostname} é o link oficial?`)))}">${esc(L("Ask the agent", "Perguntar ao agente"))}</a></div></article>`).join("") || `<p class="muted">${esc(L("No project matches.", "Nenhum projeto encontrado."))}</p>`}</div>
+  <p class="fine">${esc(L("Source: port.pharos.xyz/ecosystem (official), read on 2026-11-10; links from ProsPilot's directory where it lists the project.", "Fonte: port.pharos.xyz/ecosystem (oficial), lido em 10/11/2026; links do diretório do ProsPilot onde ele lista o projeto."))}</p></div>`;
+  $("q").addEventListener("input", (e) => { query = e.target.value.toLowerCase(); const pos = e.target.selectionStart; ecosystem().then(() => { $("q").focus(); $("q").setSelectionRange(pos, pos); }); });
+  document.querySelectorAll("[data-c]").forEach((b) => b.addEventListener("click", () => { cat = b.dataset.c; ecosystem(); }));
+}
+
+// ─── News & campaigns ──────────────────────────────────────────────────────────────────────────────────────────
+let feed = null;
+let tab = new URLSearchParams(location.search).get("tab") ?? "all";
+function campaignState(c) {
+  const now = Date.now();
+  const s = Date.parse(c.startTime);
+  const e = Date.parse(c.endTime);
+  return now < s ? "upcoming" : now > e ? "ended" : "active";
+}
+async function news() {
+  feed ??= await get("kind=feed").catch((e) => ({ error: e }));
+  if (feed.error) return ($("main").innerHTML = fail(feed.error));
+  const tabs = [["all", L("All", "Tudo")], ["x", "X / Twitter"], ["news", L("News & blog", "Notícias e blog")], ["campaigns", L("Campaigns", "Campanhas")]];
+  const tweet = (t) => `<article class="card post"><small class="muted">X · ${esc(new Date(t.createdAt).toLocaleString(loc()))}</small><p>${esc(t.text)}</p>${t.url ? `<a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(L("Open on X", "Abrir no X"))} ↗</a>` : ""}</article>`;
+  const item = (i) => `<article class="card post">${i.image ? `<img src="${esc(i.image)}" alt="" loading="lazy">` : ""}<small class="muted">${esc(i.kind === "blog" ? "Blog" : L("News", "Notícia"))} · ${esc(i.date)}</small><p><b>${esc(i.title)}</b></p><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(L("Read", "Ler"))} ↗</a></article>`;
+  const camp = (c) => { const st = campaignState(c); return `<article class="card post"><span class="verdict ${st === "active" ? "looks_ok" : st === "upcoming" ? "caution" : "low"}">${esc({ active: L("active", "ativa"), upcoming: L("upcoming", "em breve"), ended: L("ended", "encerrada") }[st])}</span><p><b>${esc(c.name)}</b> <span class="muted">${esc(c.kind ?? "")}</span></p><small class="muted">${esc(new Date(c.startTime).toLocaleDateString(loc()))} → ${esc(new Date(c.endTime).toLocaleDateString(loc()))}</small><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(L("Open", "Abrir"))} ↗</a></article>`; };
+  let body;
+  if (tab === "campaigns") body = feed.campaigns.length ? feed.campaigns.map(camp).join("") : `<p class="muted">${esc(L("No campaign listed right now.", "Nenhuma campanha listada agora."))}</p>`;
+  else if (tab === "x") body = feed.tweets.map(tweet).join("");
+  else if (tab === "news") body = feed.news.map(item).join("");
+  else {
+    const all = [...feed.tweets.map((t) => ({ at: Date.parse(t.createdAt), html: tweet(t) })), ...feed.news.map((i) => ({ at: Date.parse(i.date), html: item(i) }))].sort((a, b) => b.at - a.at);
+    body = all.slice(0, 40).map((x) => x.html).join("");
+  }
+  $("main").innerHTML = `<section class="hero wrap"><p class="eyebrow">${esc(L("UPDATES", "NOVIDADES"))}</p><h1>${esc(L("Latest from Pharos", "O mais recente da Pharos"))}</h1><p class="lead">${esc(L("Official announcements, blog posts, posts from @pharos_network and the live Pharos Port campaigns — in one timeline.", "Anúncios oficiais, posts do blog, posts do @pharos_network e as campanhas do Pharos Port — numa só linha do tempo."))}</p><div class="tabs">${tabs.map(([k, t]) => `<button data-t="${k}" aria-pressed="${tab === k}">${esc(t)}</button>`).join("")}<a class="btn small" href="${esc(agentLink(L("What's new on Pharos, and which campaigns are live?", "O que há de novo na Pharos e quais campanhas estão ativas?")))}">${esc(L("Ask the agent for a summary", "Pedir um resumo ao agente"))}</a></div></section><div class="wrap feed">${body}</div><p class="wrap fine">${esc(L("Through ProsPilot's public API (pharos.xyz, @pharos_network, Pharos Port).", "Pela API pública do ProsPilot (pharos.xyz, @pharos_network, Pharos Port)."))}</p>`;
+  document.querySelectorAll("[data-t]").forEach((b) => b.addEventListener("click", () => { tab = b.dataset.t; history.replaceState(null, "", `/news?tab=${tab}`); news(); }));
+}
+
+function render() {
+  ({ trade, network, ecosystem, news })[page]?.();
+}
+document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+header();
+render();

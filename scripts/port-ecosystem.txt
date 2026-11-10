@@ -1,0 +1,43 @@
+OKX Wallet|The crypto wallet for everything onchain.|Wallet
+TopNod|A simple, secure self-custody wallet for managing RWA and other digital assets.|Wallet
+Faroswap|Pharos-native DEX fueling RWA-Fi with precision & depth.|DEX
+Circle|Circle (NASDAQ: CRCL) is a global fintech and the issuer of USDC, enabling blockchain-based payments and commerce worldwide.|Stable Coin
+R25|R25 is an RWA tokenization protocol that uses IoT and AI to turn solar and EV assets into investable on-chain products.|RWA
+Prosper|Prosper is a public, permissionless, non-custodial launchpad on Pharos, through which Curator can launch its own token through a fair and transparent process. The framework enables onchain trading strategies into liquid, tradable markets.|RWA, Launchpad
+Accountable|The standard for financial verification, providing infrastructure to launch and operate financial products onchain.|RWA
+Asseto|Asseto focuses on RWA tokenized fintech companies and is committed to building a next-generation on-chain asset platform.|RWA
+OKU|Oku is a premier DeFi aggregator live on 35+ chains offering 0% fees across 14 swap and 11 bridge routers to connect users with S-tier apps in crypto.|Lending
+Morpho|Morpho is a lending protocol combining Compound/Aave-style pools with peer-to-peer orderbook-style matching.|Lending
+Agra|The exchange for onchain credit, built for trading and financing tokenized credit.|DEX
+Anvita Mate|Professional Workbench with AI Agents Built In.|AI
+LayerZero|LayerZero is an Omnichain Interoperability Protocol designed for lightweight message passing across chains.|Bridge
+LI.FI|LI.FI is a bridge aggregation protocol with DEX connectivity and cross-chain data messaging capabilities.|Bridge
+Jumper|Jumper is a LI.FI-powered cross-chain swap and bridge interface that aggregates liquidity across major chains.|Bridge
+NewSight|Predict Every Headline. Trade What You Know. NewSight is an AI-native newsfeed and prediction market.|Prediction Market
+OneKey|OneKey is an open-source cryptocurrency wallet that allows users to securely and conveniently store and use their crypto assets.|Wallet
+Fordefi|Fordefi is an institutional MPC wallet and security platform that enables institutions to interact across different blockchains.|MPC
+Safe|Safe is a smart contract wallet for secure asset management with multisig and modular access controls.|Multisig
+Anchorage|Anchorage offers institutions integrated digital asset infrastructure, including custody, staking, governance, auditing, proof-of-existence, and trading.|Custodian
+Alchemy Pay|Alchemy Pay is a payment solutions provider that connects the fiat and crypto economies for global consumers, merchants, developers, and institutions.|On/Off Ramp
+Chainlink|Chainlink is an oracle infrastructure bringing the capital markets onchain and powering the majority of decentralized finance (DeFi).|Oracle, Bridge
+Supra|All-In-One MultiVM Layer 1 Built for Super dApps.|Oracle
+Alchemy|Alchemy is a web3 development platform designed to make it easy to build and scale your dApp.|RPC
+ZAN|A Suite of Plug-And-Play Tools and Services for Web3 Endeavors.|RPC
+Nirvana|Nirvana Labs is a Web3 infrastructure solution for building, managing, and supporting any blockchain application.|RPC
+Hemera|Account-Centric Indexing Network.|Block Explorer
+GoldSky|The Fastest, Most Scalable Blockchain Indexing.|Indexer
+Pharosverse|Navigate through the vast ecosystem with the help of Pharosverse - the hub for insights, projects, and community power.|Navigator
+Trusta Labs|Trusta Labs focuses on Web3 security infrastructure, aiming to bring more valuable users to the Web3 world.|Data Analytics
+Hypernative|Hypernative protects Web3 protocols and asset managers by detecting and stopping zero-day, economic, and governance threats before losses occur.|Security
+Zellic|Zellic is a blockchain security audit and consulting company, founded in 2020.|Security
+ExVul Security|ExVul is a Web3 security firm providing smart contract and blockchain protocol audits, wallet audits, Web3 penetration testing, and security consulting.|Security
+OpenZeppelin|OpenZeppelin is a crypto cybersecurity technology and services company.|Security
+TRM|TRM provides crypto compliance and risk management tools to help institutions and agencies detect, investigate, and prevent financial crime.|KYT
+PNS|Official Domain of Pharos.|DID
+Grandline|Native Platform for Launching and Trading NFTs.|NFT
+Kucoin Wallet|Find on‑chain alpha with KuCoin Web3 Wallet.|Wallet
+ZNS Connect|The Identity Layer of Web3 Multi-chain domains, GM + Deploy tools & AI-powered interaction.|DID
+Zona|Deposit RWAs and unlock idle liquidity.|RWA
+Faroo|Powering Pharos Network with Liquid Staking & RWA Yields. Unlock Pharos mainnet token liquidity, amplify returns, and lead the ecosystem.|Lending
+InterPort|Pushing boundaries for seamless DeFi operations in Pharos Ecosystem. Interport empowers traders with fast cross-chain swaps & bridge at the best rates.|Bridge
+Ember|An unified vault platform that tokenises any yield or fund strategy.|Vault

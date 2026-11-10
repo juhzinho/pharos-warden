@@ -400,8 +400,9 @@ contract Warden {
         if (p.protocols & (uint32(1) << id) == 0) revert ProtocolNotEnabled(id);
     }
 
-    /// @dev Vault shares are ERC-20 tokens too: a "protocol call" may never move or approve tokens directly.
-    /// Moving tokens is Warden's own job (approvals, payments, sweep), always to the user or an allowlisted spender.
+    /// @dev Vault shares are ERC-20 tokens too, and LP positions are NFTs: a "protocol call" may never move or approve
+    /// tokens or NFTs directly, nor batch calls it could hide that in. Moving tokens is Warden's own job (approvals,
+    /// payments, sweep), always to the user or an allowlisted spender.
     function _requireNotTokenMove(bytes calldata data) private pure {
         if (data.length < 4) revert SelectorNotAllowed(bytes4(0));
         bytes4 s = bytes4(data[:4]);
@@ -412,6 +413,10 @@ contract Warden {
                 || s == 0x39509351 // increaseAllowance(address,uint256)
                 || s == 0xd505accf // permit(address,address,uint256,uint256,uint8,bytes32,bytes32)
                 || s == 0xe3ee160e // transferWithAuthorization(...)
+                || s == 0xa22cb465 // setApprovalForAll(address,bool)
+                || s == 0x42842e0e // safeTransferFrom(address,address,uint256)
+                || s == 0xb88d4fde // safeTransferFrom(address,address,uint256,bytes)
+                || s == 0xac9650d8 // multicall(bytes[])
         ) revert SelectorNotAllowed(s);
     }
 

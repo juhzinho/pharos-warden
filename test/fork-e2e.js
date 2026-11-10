@@ -31,6 +31,8 @@ try {
   const { ABI, allProtocolsMask, net, PERMIT2, protocolByKey } = await import("../lib/config.js");
   const I = await import("../lib/intent.js");
   const { dryRun } = await import("../lib/simulate.js");
+  const D = await import("../lib/defi.js");
+  const { RpcReader } = await import("../lib/chain.js");
   console.log(`fork ${fork.url} · Warden ${wardenAddr}`);
 
   const chain = { id: net().chainId, name: "Pacific fork", nativeCurrency: { name: "PROS", symbol: "PROS", decimals: 18 }, rpcUrls: { default: { http: [fork.url] } } };
@@ -127,6 +129,47 @@ try {
     const usdc = await pub.readContract({ address: v.vault, abi: ABI.vaultV2, functionName: "previewRedeem", args: [shares] });
     await send(I.policyCallTx("setLimit", [v.vault, shares, shares], wardenAddr));
     await roundTrip(I.withdrawIntent({ user: user.address, venue: "rockawayx", shares, expectedUsdc: usdc, summary: "withdraw" }), { allowance: true }, net().tokens.USDC.address);
+  });
+
+  await step("stake 5 WPROS with Faroo: stPROS goes to the user, real = dry run (WPROS limit added first)", async () => {
+    const f = protocolByKey("faroo");
+    await send(I.policyCallTx("setLimit", [net().tokens.WPROS.address, 10n ** 19n, 10n ** 20n], wardenAddr));
+    const amount = 5n * 10n ** 18n;
+    assert.ok(wprosOut >= amount, "the swap above left enough WPROS");
+    const shares = await pub.readContract({ address: f.vault, abi: ABI.vaultV2, functionName: "previewDeposit", args: [amount] });
+    await roundTrip(I.stakeIntent({ user: user.address, amount, expectedShares: shares, summary: "stake" }), { allowance: true }, f.vault);
+  });
+
+  let positionId = null;
+  await step("add FaroSwap V3 liquidity (0.30% pool, full range): the position NFT goes to the user, mins from the dry run", async () => {
+    const reader = new RpcReader({ ...net(), rpc: fork.url });
+    const st = await D.poolState(reader, 3000);
+    const r = D.rangeTicks({ mode: "full", fee: 3000, price: st.price });
+    const need = D.pairAmounts({ sqrtPriceX96: st.sqrtPriceX96, ...r, usdc: 2_000_000n });
+    const build = (m0, m1) => D.liquidityIntent({ base: I.base({ user: user.address, summary: "lp" }), user: user.address, fee: 3000, ...r, wpros: need.wpros, usdc: need.usdc, min0: m0, min1: m1, permitFor: I.permitFor });
+    const first = await dryRun(pub, { ...build(0n, 0n), assume: { allowance: true } });
+    assert.ok(first.ok, first.error?.text);
+    const used = (t) => -first.deltas.find((d) => d.token === t).delta;
+    const plan = build((used(net().tokens.WPROS.address) * 9950n) / 10_000n, (used(net().tokens.USDC.address) * 9950n) / 10_000n);
+    const npm = net().faroswapV3.npm;
+    const before = await pub.readContract({ address: npm, abi: D.NPM_ABI, functionName: "balanceOf", args: [user.address] });
+    for (const t of plan.permit.permitted) await send(I.approvePermit2Tx(t.token, t.amount));
+    const signature = await user.signTypedData(I.typedDataFor(plan));
+    await send({ to: wardenAddr, data: I.executeData({ ...plan, signature }) });
+    assert.equal(await pub.readContract({ address: npm, abi: D.NPM_ABI, functionName: "balanceOf", args: [user.address] }), before + 1n);
+    const list = await D.lpPositions(reader, pub, user.address);
+    const p = list.positions.at(-1);
+    assert.equal(p.pair, "WPROS/USDC");
+    assert.ok(Number(p.usdc) > 1.9 && Number(p.usdc) <= 2, `position holds ${p.usdc} USDC`);
+    positionId = p.tokenId;
+  });
+
+  await step("remove the whole position and collect: minimums from a simulation, the tokens come back", async () => {
+    const reader = new RpcReader({ ...net(), rpc: fork.url });
+    const usdcBefore = await bal(net().tokens.USDC.address);
+    const r = await D.removeLiquidityTx(reader, pub, { user: user.address, tokenId: positionId, percent: 100, slippageBps: 50 });
+    await send(r.tx);
+    assert.ok((await bal(net().tokens.USDC.address)) - usdcBefore >= r.minimum[1]);
   });
 
   await step("a dry run over the per-action limit explains the refusal before anything is signed", async () => {
