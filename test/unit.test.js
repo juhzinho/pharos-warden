@@ -15,11 +15,10 @@ import { explainRevert, packLimit, packPolicy } from "../lib/simulate.js";
 const USER = "0x08cd62babd8Dac7404504792Df30C12fC5384Df5";
 const schema = (name) => TOOLS.find((t) => t.name === name).input_schema;
 
-test("Warden v2 on Atlantic (and on Pacific once deployed there); Pacific outside a request", () => {
+test("Warden v2: the same address on both networks (same deployer, nonce 1); Pacific outside a request", () => {
   assert.equal(net().key, "pacific");
   assert.equal(NETWORKS.atlantic.warden, "0x58ad9DDF29D13328ceefAF70AFa42644E4D76766");
-  // v2 is the same deployer at nonce 1 on both networks; Pacific keeps v1 until v2 is deployed there
-  assert.ok(["0x58ad9DDF29D13328ceefAF70AFa42644E4D76766", "0x02fa5869a0Abe62C97c1D1c65df878783Dc11418"].includes(NETWORKS.pacific.warden));
+  assert.equal(NETWORKS.pacific.warden, NETWORKS.atlantic.warden);
   assert.equal(withNetwork("atlantic", () => net().chainId), 688689);
   assert.equal(withNetwork("atlantic", () => net().tokens.USDC.address), "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B");
   assert.throws(() => withNetwork("goerli", () => 1), /unknown network/);
