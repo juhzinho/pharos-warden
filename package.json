@@ -8,7 +8,13 @@
     "node": ">=20.12"
   },
   "description": "An AI agent for Pharos that plans DeFi actions and payments in plain words, and an on-chain contract that guarantees the outcome you signed.",
-  "scripts": {},
+  "scripts": {
+    "web": "node scripts/server.js",
+    "test": "node --test test/*.test.js",
+    "test:fork": "node test/fork-e2e.js",
+    "test:contracts": "cd contracts && forge test",
+    "build:sim": "node scripts/build-sim.js"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.7.0",
     "@modelcontextprotocol/sdk": "^1.32.2",
