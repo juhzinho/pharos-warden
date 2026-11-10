@@ -9,6 +9,7 @@ import { vaultRates, walletOverview } from "../lib/reads.js";
 import { verifyExecution } from "../lib/verify.js";
 import { createPublicClient, http } from "viem";
 import ECOSYSTEM from "../lib/ecosystem.json" with { type: "json" };
+import LOGOS from "../lib/logos.json" with { type: "json" };
 import { prosHistory, prosMarket } from "../lib/market.js";
 import { pool } from "../lib/pool.js";
 import { prospilotData } from "../lib/prospilot.js";
@@ -82,7 +83,11 @@ export default async function handler(req, res) {
     const [market, history] = await Promise.all([prosMarket(), prosHistory(q.get("days") ?? 7)]);
     return json(res, 200, { market, history, venues: ECOSYSTEM.venues }, "public, s-maxage=60");
   }
-  if (kind === "ecosystem") return json(res, 200, ECOSYSTEM, "public, s-maxage=3600");
+  if (kind === "ecosystem") {
+    // each project's own icon, served by this site (scripts/fetch-logos.mjs)
+    const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    return json(res, 200, { ...ECOSYSTEM, apps: ECOSYSTEM.apps.map((a) => ({ ...a, logo: LOGOS[slug(a.name)] ?? null })) }, "public, s-maxage=3600");
+  }
   if (kind === "pools") {
     return withNetwork("pacific", async () => {
       const chain = new RpcReader(net());

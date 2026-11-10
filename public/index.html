@@ -7,7 +7,7 @@
 <meta name="description" content="An AI agent for Pharos: it reads the chain, decides and prepares the transaction; you sign its guarantees in your wallet; the Warden contract reverts if any guarantee fails. It also simulates what other dApps ask you to sign.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2310483b'/%3E%3Cpath d='M16 6l8 3v6c0 5.5-3.4 9.6-8 11-4.6-1.4-8-5.5-8-11V9z' fill='none' stroke='%23d9f2e6' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M12.5 16l2.6 2.6 4.6-5' fill='none' stroke='%23d9f2e6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -33,7 +33,7 @@
   <div>
     <p class="eyebrow" data-i="eyebrow">Agent-native dApp on Pharos</p>
     <h1 data-i="h1">An AI agent that <span class="hl">can't make you lose</span> more than you signed.</h1>
-    <p class="lead" data-i="lead">Ask in plain words. Warden reads Pharos, decides and prepares one transaction. You sign its guarantees — <em>spend at most this, receive at least that</em> — and the Warden contract reverts the whole thing if any of them fails.</p>
+    <p class="lead" data-i="lead">Ask in plain words. <em>You sign the limits</em> — the contract enforces them.</p>
     <div class="cta">
       <a class="btn primary lg" href="#app" data-i="ctaStart">Start with the agent</a>
       <a class="btn lg" href="#how" data-i="ctaHow">How it works</a>
@@ -49,10 +49,10 @@
         <div class="get"><span data-i="getMin">You receive at least</span><b>37.77 WPROS</b></div>
       </div>
       <ul class="demo-list">
-        <li data-i="demo1">Live quote, price impact and pool vs market checked</li>
-        <li data-i="demo2">The exact transaction dry-run before you sign</li>
-        <li data-i="demo3">Signed in your wallet — no key leaves it</li>
-        <li data-i="demo4">Below the minimum? Warden reverts, nothing moves</li>
+        <li data-i="demo1">Live quote and price impact checked</li>
+        <li data-i="demo2">Dry run before you sign</li>
+        <li data-i="demo3">Signed in your own wallet</li>
+        <li data-i="demo4">Below the minimum? It reverts</li>
       </ul>
     </div>
   </div>
@@ -60,16 +60,16 @@
 
 <div class="wrap">
   <div class="stats">
-    <div><b>2</b><span data-i="stat1">networks: Atlantic and Pacific</span></div>
-    <div><b>38</b><span data-i="stat2">agent tools, from swaps to x402</span></div>
-    <div><b>4</b><span data-i="stat3">Pharos AI tools used</span></div>
-    <div><b>0</b><span data-i="stat4">keys held by the agent</span></div>
+    <div><b>2</b><span data-i="stat1">networks</span></div>
+    <div><b>37</b><span data-i="stat2">agent tools</span></div>
+    <div><b>4</b><span data-i="stat3">Pharos AI tools</span></div>
+    <div><b>0</b><span data-i="stat4">keys held</span></div>
   </div>
 
   <div class="section-head" id="app">
     <p class="kicker" data-i="appKicker">The agent</p>
     <h2 data-i="appTitle">Your Pharos copilot, with a seatbelt</h2>
-    <p data-i="appText">Pick an action on the left or just type. Everything runs through the agent; you sign in your wallet.</p>
+    <p data-i="appText">Pick an action or just type.</p>
   </div>
 </div>
 
@@ -87,14 +87,14 @@
     <div class="welcome">
       <span class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" width="30" height="30"><path d="M16 6l8 3v6c0 5.5-3.4 9.6-8 11-4.6-1.4-8-5.5-8-11V9z" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 16l2.6 2.6 4.6-5" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <h3 data-i="welcomeTitle">What should we do on Pharos?</h3>
-      <p data-i="welcomeText">Pay people, swap, stake, add liquidity — or paste anything another dApp asks you to sign. Try one of these:</p>
+      <p data-i="welcomeText">Pay, swap, stake — or check what a dApp asks you to sign.</p>
     </div>
     <div class="chips" id="chips"></div>
     <form class="composer" id="composer">
       <textarea id="input" rows="1" maxlength="2000" data-i-placeholder="placeholder" placeholder="Ask Warden… e.g. “Swap 5 USDC to WPROS”"></textarea>
       <button class="btn primary" id="send" type="submit" data-i="send">Send</button>
     </form>
-    <p class="fine" id="fine">The agent never holds a key; every transaction is signed by you, and Warden reverts it unless every guarantee holds.</p>
+    <p class="fine" id="fine">Testnet · free test USDC at faucet.circle.com</p>
   </section>
 
   <aside class="side">
@@ -105,7 +105,7 @@
     <section class="card pad">
       <h2 data-i="ratesTitle">USDC yields · Pacific · 7 days</h2>
       <div id="rates" class="muted">…</div>
-      <p class="fine" data-i="ratesNote">Realised: from on-chain share prices and income indexes 7 days apart, read through the Pharos Chain MCP.</p>
+      <p class="fine" data-i="ratesNote">Realised over 7 days, read on chain.</p>
     </section>
     <section class="card pad">
       <h2 data-i="contractTitle">The contract</h2>
@@ -118,7 +118,7 @@
   <div class="section-head" id="how">
     <p class="kicker" data-i="howKicker">How it works</p>
     <h2 data-i="howTitle">The agent decides. The contract guarantees.</h2>
-    <p data-i="howText">Agents are good at reading the chain and choosing. They should not hold your keys — so Warden splits the work, and the parts that move money are enforced on chain.</p>
+    <p data-i="howText">The agent chooses. The chain enforces. Your keys never leave your wallet.</p>
   </div>
   <ol class="flow">
     <li><b data-i="f1t">Ask</b><span data-i="f1">“Pay 3 people in one signature” · “Is this safe to sign?”</span></li>
@@ -133,7 +133,7 @@
 <footer class="wrap foot">
   <div>
     <a class="brand" href="/"><svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--brand)"/><path d="M16 6l8 3v6c0 5.5-3.4 9.6-8 11-4.6-1.4-8-5.5-8-11V9z" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 16l2.6 2.6 4.6-5" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Pharos <b>Warden</b></span></a>
-    <p data-i="footAbout">An AI agent for Pharos that prepares every action and a contract that guarantees it. Built for the Pharos Season of AI.</p>
+    <p data-i="footAbout">An AI agent for Pharos, guarded by an on-chain contract. Built for the Pharos Season of AI.</p>
   </div>
   <div><h4 data-i="footProduct">Product</h4><a href="/" data-i="navAgent">Agent</a><a href="/trade">Trade</a><a href="/network" data-i="navNetwork">Network</a><a href="/ecosystem" data-i="navEco">Ecosystem</a><a href="/news" data-i="navNews">News</a></div>
   <div><h4 data-i="footBuild">Build</h4><a href="https://github.com/juhzinho/pharos-warden" target="_blank" rel="noopener">GitHub</a><a href="https://github.com/juhzinho/pharos-warden/blob/master/docs/ARCHITECTURE.md" target="_blank" rel="noopener" data-i="arch">Architecture</a><a href="https://docs.pharos.xyz" target="_blank" rel="noopener">Pharos docs</a><a href="https://ai.pharos.xyz" target="_blank" rel="noopener">ai.pharos.xyz</a></div>
@@ -144,7 +144,7 @@
 <dialog class="wallets" id="walletPicker">
   <form method="dialog">
     <div class="wp-head"><b data-i="wpTitle">Connect a wallet</b><button class="link" value="cancel" aria-label="Close">✕</button></div>
-    <p class="muted" data-i="wpText">Wallets found in this browser. Your keys stay in your wallet — Warden only asks it to sign.</p>
+    <p class="muted" data-i="wpText">Your keys stay in your wallet.</p>
     <div class="wp-list" id="walletList"></div>
   </form>
 </dialog>

@@ -16,9 +16,12 @@ const knowledge = readFileSync(new URL("../../pharos-agent/lib/knowledge.ts", im
 const start = knowledge.indexOf("export const ECOSYSTEM_DAPPS");
 const prospilot = [...knowledge.slice(start, knowledge.indexOf("\n};", start)).matchAll(/\{ name: "([^"]+)", url: "([^"]+)", desc: "([^"]+)", descPt: "([^"]+)" \}/g)].map((a) => ({ name: a[1], url: a[2], descPt: a[4] }));
 const norm = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/security$|wallet$|labs$/, "");
+// our own Portuguese for the projects ProsPilot does not list (scripts/port-ecosystem-pt.txt)
+const ownPt = Object.fromEntries(readFileSync(new URL("port-ecosystem-pt.txt", import.meta.url), "utf8").trim().split("\n").map((l) => l.split("|")));
 const apps = port.map((p) => {
   const m = prospilot.find((x) => norm(x.name) === norm(p.name)) ?? prospilot.find((x) => norm(x.name).startsWith(norm(p.name)) || norm(p.name).startsWith(norm(x.name)));
-  return { ...p, url: m?.url ?? PORT_URL, ...(m && { descPt: m.descPt }), linkFrom: m ? "ProsPilot directory" : "official ecosystem page" };
+  const descPt = m?.descPt ?? ownPt[p.name];
+  return { ...p, url: m?.url ?? PORT_URL, ...(descPt && { descPt }), linkFrom: m ? "ProsPilot directory" : "official ecosystem page" };
 });
 const categories = [...new Set(apps.flatMap((a) => a.categories))].map((name) => ({ name, apps: apps.filter((a) => a.categories.includes(name)).map((a) => a.name) }));
 const prices = readFileSync(new URL("../../pharos-agent/lib/prices.ts", import.meta.url), "utf8");

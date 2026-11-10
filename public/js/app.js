@@ -7,25 +7,25 @@ const T = {
     connect: "Conectar carteira",
     eyebrow: "dApp agent-native na Pharos",
     h1: "Um agente de IA que <span class=\"hl\">não consegue te fazer perder</span> mais do que você assinou.",
-    lead: "Peça em palavras simples. O Warden lê a Pharos, decide e prepara uma transação. Você assina as garantias dela — <em>gastar no máximo isto, receber no mínimo aquilo</em> — e o contrato Warden reverte tudo se alguma delas falhar.",
+    lead: "Peça em palavras simples. <em>Você assina os limites</em> — o contrato os garante.",
     ctaStart: "Começar com o agente", ctaHow: "Como funciona", pillsLabel: "Feito com",
     demoBadge: "exemplo", demoNet: "Pacific Mainnet · FaroSwap", demoQ: "Troque 20 USDC por WPROS",
-    demo1: "Cotação ao vivo, impacto de preço e pool vs mercado conferidos", demo2: "A transação exata simulada antes de você assinar", demo3: "Assinada na sua carteira — nenhuma chave sai dela", demo4: "Abaixo do mínimo? O Warden reverte, nada se move",
-    stat1: "redes: Atlantic e Pacific", stat2: "ferramentas do agente, de swaps a x402", stat3: "ferramentas de IA da Pharos usadas", stat4: "chaves guardadas pelo agente",
-    howKicker: "Como funciona", howTitle: "O agente decide. O contrato garante.", howText: "Agentes são bons em ler a chain e escolher. Eles não devem guardar suas chaves — então o Warden divide o trabalho, e a parte que move dinheiro é garantida na chain.",
+    demo1: "Cotação e impacto de preço conferidos", demo2: "Simulada antes de você assinar", demo3: "Assinada na sua própria carteira", demo4: "Abaixo do mínimo? Reverte",
+    stat1: "redes", stat2: "ferramentas do agente", stat3: "ferramentas de IA da Pharos", stat4: "chaves guardadas",
+    howKicker: "Como funciona", howTitle: "O agente decide. O contrato garante.", howText: "O agente escolhe. A chain garante. Suas chaves nunca saem da sua carteira.",
     f1t: "Pedir", f1: "“Pague 3 pessoas numa assinatura” · “Isto é seguro de assinar?”",
     f2t: "O agente lê e decide", f2: "saldos, pools, rendimentos, destinatários — pelo Chain MCP e Docs MCP",
     f3t: "Simulação", f3: "a transação exata, no estado real da chain, antes de você assinar",
     f4t: "Você assina as garantias", f4: "na sua própria carteira · nenhuma chave sai dela",
     f5t: "O Warden garante", f5: "na chain — toda garantia se cumpre, ou nada se move",
-    appKicker: "O agente", appTitle: "Seu copiloto na Pharos, com cinto de segurança", appText: "Escolha uma ação à esquerda ou escreva. Tudo roda pelo agente; você assina na sua carteira.",
-    welcomeTitle: "O que vamos fazer na Pharos?", welcomeText: "Pagar pessoas, trocar, fazer stake, adicionar liquidez — ou colar qualquer coisa que outro dApp peça para você assinar. Tente um destes:",
-    footAbout: "Um agente de IA para a Pharos que prepara cada ação e um contrato que a garante. Feito para a Pharos Season of AI.", footProduct: "Produto", footBuild: "Construção", footChain: "Na chain", footFaucet: "Faucet de USDC de teste", footNote: "Não é recomendação financeira. O agente mostra os números e as fontes; você decide e assina.",
-    wpTitle: "Conectar uma carteira", wpText: "Carteiras encontradas neste navegador. Suas chaves ficam na carteira — o Warden só pede assinaturas.",
+    appKicker: "O agente", appTitle: "Seu copiloto na Pharos, com cinto de segurança", appText: "Escolha uma ação ou escreva.",
+    welcomeTitle: "O que vamos fazer na Pharos?", welcomeText: "Pague, troque, faça stake — ou confira o que um dApp pede para assinar.",
+    footAbout: "Um agente de IA para a Pharos, protegido por um contrato on-chain. Feito para a Pharos Season of AI.", footProduct: "Produto", footBuild: "Construção", footChain: "Na chain", footFaucet: "Faucet de USDC de teste", footNote: "Não é recomendação financeira. O agente mostra os números e as fontes; você decide e assina.",
+    wpTitle: "Conectar uma carteira", wpText: "Suas chaves ficam na sua carteira.",
     agentTitle: "Agente Warden", newChat: "Nova conversa", send: "Enviar",
     placeholder: "Pergunte ao Warden… ex.: “Pague 2 USDC para 0x…”",
     walletTitle: "Sua carteira", walletEmpty: "Conecte uma carteira para ver saldos, posições e seus limites no Warden.",
-    ratesTitle: "Rendimento em USDC · Pacific · 7 dias", ratesNote: "Realizado: preços de cota e índices de renda on-chain com 7 dias de diferença, lidos pelo Pharos Chain MCP.",
+    ratesTitle: "Rendimento em USDC · Pacific · 7 dias", ratesNote: "Realizado em 7 dias, lido na chain.",
     contractTitle: "O contrato", arch: "Arquitetura",
     spendMax: "Você gasta no máximo", getMin: "Você recebe no mínimo",
     navAgent: "Agente", navTrade: "Trade", navNetwork: "Rede", navEco: "Ecossistema", navNews: "Notícias",
@@ -50,7 +50,7 @@ const DYN = {
     offline: "The agent is offline on this deployment (no model key). The wallet and yields panels still work.",
     stopped: "Stopped.", policyNeeded: "Needs your Warden policy first", calls: "reads",
     warn: { pacific: "Pharos Pacific Mainnet · real funds. Check what your wallet shows before you sign.", atlantic: "Pharos Atlantic Testnet · test funds with no value. Your wallet will switch to Atlantic to sign." },
-    fine: { pacific: "Pacific Mainnet, real funds. The agent never holds a key; every transaction is signed by you, and Warden reverts it unless every guarantee holds.", atlantic: "Atlantic Testnet: free test USDC from faucet.circle.com (network “Pharos Testnet”). The agent never holds a key; every transaction is signed by you, and Warden reverts it unless every guarantee holds." },
+    fine: { pacific: "Mainnet · real funds · you sign every transaction", atlantic: "Testnet · free test USDC at faucet.circle.com" },
     switched: (n) => `Now on ${n}. New conversation.`,
     assume: { allowance: (s) => `your ${s} approval to Permit2 (the one-time step below)`, balance: (s) => `a ${s} balance of the amount to spend`, policy: () => "the Warden policy proposed above (not set yet)" },
     verdict: { do_not_sign: "Do not sign", high_risk: "High risk", caution: "Caution", looks_ok: "Looks OK" },
@@ -75,7 +75,7 @@ const DYN = {
     offline: "O agente está desligado neste deploy (sem chave do modelo). Os painéis de carteira e rendimento continuam funcionando.",
     stopped: "Interrompido.", policyNeeded: "Precisa da sua política no Warden antes", calls: "leituras",
     warn: { pacific: "Pharos Pacific Mainnet · fundos reais. Confira o que a carteira mostrar antes de assinar.", atlantic: "Pharos Atlantic Testnet · fundos de teste, sem valor. Sua carteira vai trocar para a Atlantic para assinar." },
-    fine: { pacific: "Pacific Mainnet, fundos reais. O agente nunca guarda chave; toda transação é assinada por você, e o Warden reverte se alguma garantia não se cumprir.", atlantic: "Atlantic Testnet: USDC de teste grátis em faucet.circle.com (rede “Pharos Testnet”). O agente nunca guarda chave; toda transação é assinada por você, e o Warden reverte se alguma garantia não se cumprir." },
+    fine: { pacific: "Mainnet · fundos reais · você assina cada transação", atlantic: "Testnet · USDC de teste grátis em faucet.circle.com" },
     switched: (n) => `Agora na ${n}. Nova conversa.`,
     assume: { allowance: (s) => `sua aprovação de ${s} ao Permit2 (o passo único abaixo)`, balance: (s) => `um saldo de ${s} no valor a gastar`, policy: () => "a política do Warden proposta acima (ainda não definida)" },
     verdict: { do_not_sign: "Não assine", high_risk: "Risco alto", caution: "Atenção", looks_ok: "Parece OK" },
@@ -200,13 +200,16 @@ document.querySelectorAll("[data-net]").forEach((b) =>
 );
 
 // ─── wallet ────────────────────────────────────────────────────────────────────────────────────────────────────
-// The picker lists every wallet the browser announces (EIP-6963: MetaMask, OKX Wallet, Rabby, Coinbase…), and offers
+// The picker lists every wallet the browser announces (EIP-6963: MetaMask, OKX Wallet, Rabby, OneKey…), and offers
 // to install the well-known ones that are missing. The user chooses; nothing connects by itself.
 const KNOWN_WALLETS = [
-  { name: "MetaMask", match: /metamask/i, url: "https://metamask.io/download/" },
-  { name: "OKX Wallet", match: /okx/i, url: "https://web3.okx.com/download" },
-  { name: "Rabby", match: /rabby/i, url: "https://rabby.io/" },
-  { name: "Coinbase Wallet", match: /coinbase/i, url: "https://www.coinbase.com/wallet/downloads" },
+  // EVM wallets that work on Pharos; OneKey, TopNod and KuCoin Wallet are in the official Pharos ecosystem list
+  { name: "MetaMask", match: /metamask/i, url: "https://metamask.io/download/", logo: "/img/logos/wallet-metamask.png" },
+  { name: "OKX Wallet", match: /okx/i, url: "https://web3.okx.com/download", logo: "/img/logos/wallet-okx-wallet.png" },
+  { name: "Rabby", match: /rabby/i, url: "https://rabby.io/", logo: "/img/logos/wallet-rabby.png" },
+  { name: "OneKey", match: /onekey/i, url: "https://onekey.so/download/", logo: "/img/logos/onekey.png" },
+  { name: "TopNod", match: /topnod/i, url: "https://topnod.com/", logo: "/img/logos/topnod.ico" },
+  { name: "KuCoin Wallet", match: /kucoin/i, url: "https://www.kucoin.com/web3", logo: "/img/logos/kucoin-wallet.png" },
 ];
 async function connectWith(pick) {
   try {
@@ -225,10 +228,15 @@ function openWalletPicker() {
   window.dispatchEvent(new Event("eip6963:requestProvider")); // wallets that loaded late announce again
   const list = availableWallets();
   const missing = KNOWN_WALLETS.filter((k) => !list.some((w) => k.match.test(w.name)));
-  const icon = (w) => (w.icon && /^data:image\/|^https:\/\//.test(w.icon) ? `<img src="${esc(w.icon)}" alt="">` : `<span class="wi">${esc(w.name[0])}</span>`);
+  // the wallet's own announced icon, else the known logo of that wallet, else its initial
+  const icon = (w) => {
+    const own = w.icon && /^data:image\/|^https:\/\//.test(w.icon) ? w.icon : null;
+    const src = own ?? KNOWN_WALLETS.find((k) => k.match.test(w.name))?.logo;
+    return src ? `<img src="${esc(src)}" alt="">` : `<span class="wi">${esc(w.name[0])}</span>`;
+  };
   $("walletList").innerHTML =
     (list.length ? list.map((w, i) => `<button type="button" data-w="${i}">${icon(w)}${esc(w.name)}${wallet?.provider === w.provider ? `<small>${esc(lang === "pt" ? "conectada" : "connected")}</small>` : `<small>${esc(lang === "pt" ? "detectada" : "detected")}</small>`}</button>`).join("") : `<p class="muted">${esc(d("noWallet"))}</p>`) +
-    (missing.length ? `<p class="sep">${esc(lang === "pt" ? "Instalar" : "Install")}</p>${missing.map((k) => `<a href="${esc(k.url)}" target="_blank" rel="noopener"><span class="wi">${esc(k.name[0])}</span>${esc(k.name)}<small>↗</small></a>`).join("")}` : "");
+    (missing.length ? `<p class="sep">${esc(lang === "pt" ? "Instalar" : "Install")}</p>${missing.map((k) => `<a href="${esc(k.url)}" target="_blank" rel="noopener"><img src="${esc(k.logo)}" alt="">${esc(k.name)}<small>${esc(lang === "pt" ? "instalar ↗" : "install ↗")}</small></a>`).join("")}` : "");
   $("walletList").querySelectorAll("button[data-w]").forEach((b) =>
     b.addEventListener("click", () => {
       $("walletPicker").close();

@@ -123,7 +123,7 @@ async function ecosystem() {
   const shown = eco.apps.filter((a) => (cat === "all" || a.categories.includes(cat)) && (!query || `${a.name} ${a.desc}`.toLowerCase().includes(query)));
   $("main").innerHTML = `<section class="page-hero wrap"><p class="eyebrow">${esc(L("Ecosystem", "Ecossistema"))}</p><h1>${esc(L("Everything built on Pharos", "Tudo o que é construído na Pharos"))}</h1><p class="lead">${esc(L(`${eco.apps.length} active projects from the official Pharos Port directory — the same list the agent answers from.`, `${eco.apps.length} projetos ativos do diretório oficial do Pharos Port — a mesma lista que o agente usa.`))}</p></section>
   <div class="wrap"><div class="filters"><input id="q" type="search" placeholder="${esc(L("Search projects…", "Buscar projetos…"))}" value="${esc(query)}"><div class="tabs wrapgap"><button data-c="all" aria-pressed="${cat === "all"}">${esc(L("All", "Todos"))} ${eco.apps.length}</button>${eco.categories.map((c) => `<button data-c="${esc(c.name)}" aria-pressed="${cat === c.name}">${esc(c.name)} ${c.apps.length}</button>`).join("")}</div></div>
-  <div class="apps">${shown.map((a) => `<article class="card app"><div class="app-head"><span class="logo" aria-hidden="true">${esc(a.name[0])}</span><div><b>${esc(a.name)}</b><small>${esc(a.categories.join(" · "))}</small></div></div><p>${esc(lang === "pt" && a.descPt ? a.descPt : a.desc)}</p><div class="app-foot"><a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(L("Visit", "Visitar"))} ↗</a><a href="${esc(agentLink(L(`What is ${a.name} on Pharos, and is ${new URL(a.url).hostname} its official link?`, `O que é ${a.name} na Pharos, e ${new URL(a.url).hostname} é o link oficial?`)))}">${esc(L("Ask the agent", "Perguntar ao agente"))}</a></div></article>`).join("") || `<p class="muted">${esc(L("No project matches.", "Nenhum projeto encontrado."))}</p>`}</div>
+  <div class="apps">${shown.map((a) => `<article class="card app"><div class="app-head"><span class="logo" aria-hidden="true">${a.logo ? `<img src="${esc(a.logo)}" alt="" loading="lazy">` : esc(a.name[0])}</span><div><b>${esc(a.name)}</b><small>${esc(a.categories.join(" · "))}</small></div></div><p>${esc(lang === "pt" && a.descPt ? a.descPt : a.desc)}</p><div class="app-foot"><a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(L("Visit", "Visitar"))} ↗</a><a href="${esc(agentLink(L(`What is ${a.name} on Pharos, and is ${new URL(a.url).hostname} its official link?`, `O que é ${a.name} na Pharos, e ${new URL(a.url).hostname} é o link oficial?`)))}">${esc(L("Ask the agent", "Perguntar ao agente"))}</a></div></article>`).join("") || `<p class="muted">${esc(L("No project matches.", "Nenhum projeto encontrado."))}</p>`}</div>
   <p class="fine">${esc(L("Source: port.pharos.xyz/ecosystem (official), read on 2026-11-10; links from ProsPilot's directory where it lists the project.", "Fonte: port.pharos.xyz/ecosystem (oficial), lido em 10/11/2026; links do diretório do ProsPilot onde ele lista o projeto."))}</p></div>`;
   $("q").addEventListener("input", (e) => { query = e.target.value.toLowerCase(); const pos = e.target.selectionStart; ecosystem().then(() => { $("q").focus(); $("q").setSelectionRange(pos, pos); }); });
   document.querySelectorAll("[data-c]").forEach((b) => b.addEventListener("click", () => { cat = b.dataset.c; ecosystem(); }));
@@ -138,22 +138,73 @@ function campaignState(c) {
   const e = Date.parse(c.endTime);
   return now < s ? "upcoming" : now > e ? "ended" : "active";
 }
-async function news() {
-  feed ??= await get("kind=feed").catch((e) => ({ error: e }));
+// The X posts come live from X's own embedded timeline (platform.twitter.com, in the visitor's browser), so they are
+// always the latest; the posts read by ProsPilot's API are only the fallback when the widget can't load.
+const X_HANDLE = "pharos_network";
+let feedAt = 0;
+let refreshTimer = null;
+function xTimeline() {
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  return `<div class="xlive" id="xlive"><div class="xlive-head"><b>@${X_HANDLE}</b><span class="live-dot">${esc(L("live from X", "ao vivo do X"))}</span><a href="https://x.com/${X_HANDLE}" target="_blank" rel="noopener">${esc(L("Open on X", "Abrir no X"))} ↗</a></div><a class="twitter-timeline" data-dnt="true" data-chrome="noheader nofooter transparent" data-height="900" data-theme="${dark ? "dark" : "light"}" data-lang="${lang === "pt" ? "pt" : "en"}" href="https://twitter.com/${X_HANDLE}">${esc(L("Loading the latest posts…", "Carregando os posts mais recentes…"))}</a><div class="xfallback" id="xfallback" hidden></div></div>`;
+}
+function mountX(fallbackHtml) {
+  const box = $("xlive");
+  if (!box) return;
+  // X only fills its embedded timeline for visitors signed in to X; an empty or missing widget shows the fallback
+  const showFallback = () => {
+    if (!box.isConnected || (box.querySelector("iframe")?.offsetHeight ?? 0) > 120) return;
+    const fb = $("xfallback");
+    fb.innerHTML = fallbackHtml;
+    fb.hidden = false;
+    const dot = box.querySelector(".live-dot");
+    if (dot) dot.textContent = L("latest posts", "últimos posts");
+    box.querySelectorAll(".twitter-timeline, iframe").forEach((n) => n.remove());
+  };
+  if (window.twttr?.widgets) window.twttr.widgets.load(box);
+  else if (!document.getElementById("x-widgets")) {
+    const s = document.createElement("script");
+    s.id = "x-widgets";
+    s.async = true;
+    s.src = "https://platform.twitter.com/widgets.js";
+    s.onerror = showFallback;
+    document.head.append(s);
+  }
+  setTimeout(showFallback, 9000);
+}
+async function news(force = false) {
+  if (force || !feed || Date.now() - feedAt > 300_000) {
+    const fresh = await get("kind=feed").catch((e) => ({ error: e }));
+    if (!fresh.error || !feed) [feed, feedAt] = [fresh, Date.now()];
+  }
   if (feed.error) return ($("main").innerHTML = fail(feed.error));
+  clearTimeout(refreshTimer);
+  // keep the page current without a reload: news, blog and campaigns re-read every 5 minutes (the X timeline is live)
+  refreshTimer = setTimeout(() => news(true), 300_000);
   const tabs = [["all", L("All", "Tudo")], ["x", "X / Twitter"], ["news", L("News & blog", "Notícias e blog")], ["campaigns", L("Campaigns", "Campanhas")]];
   const tweet = (t) => `<article class="card post"><small class="muted">X · ${esc(new Date(t.createdAt).toLocaleString(loc()))}</small><p>${esc(t.text)}</p>${t.url ? `<a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(L("Open on X", "Abrir no X"))} ↗</a>` : ""}</article>`;
+  const newestTweet = feed.tweets[0]?.createdAt;
+  const day = newestTweet ? new Date(newestTweet).toLocaleDateString(loc()) : "—";
+  // fresh posts (≤ 2 days) are shown as they are; older ones get a note and a link to the live profile
+  const fresh = newestTweet && Date.now() - Date.parse(newestTweet) < 2 * 86_400_000;
+  const note = fresh ? "" : `<div class="xnote"><p>${esc(L("X shows its live timeline here only when you're signed in to X.", "O X só mostra a timeline ao vivo aqui quando você está logado no X."))}</p><a class="btn small primary" href="https://x.com/${X_HANDLE}" target="_blank" rel="noopener">${esc(L(`See the latest on @${X_HANDLE}`, `Ver o mais recente no @${X_HANDLE}`))} ↗</a><small class="muted">${esc(L(`Below: the last posts we could read (newest ${day}).`, `Abaixo: os últimos posts que conseguimos ler (o mais novo de ${day}).`))}</small></div>`;
+  const fallback = `${note}${feed.tweets.slice(0, 8).map(tweet).join("")}`;
   const item = (i) => `<article class="card post">${i.image ? `<img src="${esc(i.image)}" alt="" loading="lazy">` : ""}<small class="muted">${esc(i.kind === "blog" ? "Blog" : L("News", "Notícia"))} · ${esc(i.date)}</small><p><b>${esc(i.title)}</b></p><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(L("Read", "Ler"))} ↗</a></article>`;
   const camp = (c) => { const st = campaignState(c); return `<article class="card post"><span class="verdict ${st === "active" ? "looks_ok" : st === "upcoming" ? "caution" : "low"}">${esc({ active: L("active", "ativa"), upcoming: L("upcoming", "em breve"), ended: L("ended", "encerrada") }[st])}</span><p><b>${esc(c.name)}</b> <span class="muted">${esc(c.kind ?? "")}</span></p><small class="muted">${esc(new Date(c.startTime).toLocaleDateString(loc()))} → ${esc(new Date(c.endTime).toLocaleDateString(loc()))}</small><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(L("Open", "Abrir"))} ↗</a></article>`; };
+  const order = { active: 0, upcoming: 1, ended: 2 };
+  const campaigns = [...feed.campaigns].sort((a, b) => order[campaignState(a)] - order[campaignState(b)] || Date.parse(b.startTime) - Date.parse(a.startTime));
+  const newsSorted = [...feed.news].sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0));
+  const noCamp = `<p class="muted">${esc(L("No campaign listed right now.", "Nenhuma campanha listada agora."))}</p>`;
   let body;
-  if (tab === "campaigns") body = feed.campaigns.length ? feed.campaigns.map(camp).join("") : `<p class="muted">${esc(L("No campaign listed right now.", "Nenhuma campanha listada agora."))}</p>`;
-  else if (tab === "x") body = feed.tweets.map(tweet).join("");
-  else if (tab === "news") body = feed.news.map(item).join("");
+  if (tab === "campaigns") body = `<div class="feed">${campaigns.length ? campaigns.map(camp).join("") : noCamp}</div>`;
+  else if (tab === "x") body = `<div class="xsolo">${xTimeline()}</div>`;
+  else if (tab === "news") body = `<div class="feed">${newsSorted.map(item).join("")}</div>`;
   else {
-    const all = [...feed.tweets.map((t) => ({ at: Date.parse(t.createdAt), html: tweet(t) })), ...feed.news.map((i) => ({ at: Date.parse(i.date), html: item(i) }))].sort((a, b) => b.at - a.at);
-    body = all.slice(0, 40).map((x) => x.html).join("");
+    const live = campaigns.filter((c) => campaignState(c) !== "ended");
+    body = `<div class="news-split"><div>${live.length ? `<h2 class="feed-h">${esc(L("Live campaigns", "Campanhas ativas"))}</h2><div class="feed">${live.map(camp).join("")}</div>` : ""}<h2 class="feed-h">${esc(L("News & blog", "Notícias e blog"))}</h2><div class="feed">${newsSorted.slice(0, 18).map(item).join("")}</div></div><aside>${xTimeline()}</aside></div>`;
   }
-  $("main").innerHTML = `<section class="page-hero wrap"><p class="eyebrow">${esc(L("Updates", "Novidades"))}</p><h1>${esc(L("Latest from Pharos", "O mais recente da Pharos"))}</h1><p class="lead">${esc(L("Official announcements, blog posts, posts from @pharos_network and the live Pharos Port campaigns — in one timeline.", "Anúncios oficiais, posts do blog, posts do @pharos_network e as campanhas do Pharos Port — numa só linha do tempo."))}</p><div class="tabs">${tabs.map(([k, t]) => `<button data-t="${k}" aria-pressed="${tab === k}">${esc(t)}</button>`).join("")}<a class="btn small" href="${esc(agentLink(L("What's new on Pharos, and which campaigns are live?", "O que há de novo na Pharos e quais campanhas estão ativas?")))}">${esc(L("Ask the agent for a summary", "Pedir um resumo ao agente"))}</a></div></section><div class="wrap feed">${body}</div><p class="wrap fine">${esc(L("Through ProsPilot's public API (pharos.xyz, @pharos_network, Pharos Port).", "Pela API pública do ProsPilot (pharos.xyz, @pharos_network, Pharos Port)."))}</p>`;
+  const updated = new Date(feedAt).toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" });
+  $("main").innerHTML = `<section class="page-hero wrap"><p class="eyebrow">${esc(L("Updates", "Novidades"))}</p><h1>${esc(L("Latest from Pharos", "O mais recente da Pharos"))}</h1><p class="lead">${esc(L("Blog, news, @pharos_network and live campaigns.", "Blog, notícias, @pharos_network e campanhas ativas."))}</p><div class="tabs">${tabs.map(([k, t]) => `<button data-t="${k}" aria-pressed="${tab === k}">${esc(t)}</button>`).join("")}<a class="btn small" href="${esc(agentLink(L("What's new on Pharos, and which campaigns are live?", "O que há de novo na Pharos e quais campanhas estão ativas?")))}">${esc(L("Ask the agent for a summary", "Pedir um resumo ao agente"))}</a></div></section><div class="wrap">${body}</div><p class="wrap fine">${esc(L(`Updated ${updated} · refreshes every 5 min · sources: @${X_HANDLE}, pharos.xyz, Pharos Port`, `Atualizado às ${updated} · atualiza a cada 5 min · fontes: @${X_HANDLE}, pharos.xyz, Pharos Port`))}</p>`;
+  mountX(fallback);
   document.querySelectorAll("[data-t]").forEach((b) => b.addEventListener("click", () => { tab = b.dataset.t; history.replaceState(null, "", `/news?tab=${tab}`); news(); }));
 }
 

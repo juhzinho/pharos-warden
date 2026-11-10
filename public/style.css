@@ -437,3 +437,34 @@ dialog.wallets p { font-size: 13px; margin: 0 0 14px; }
 .log:not(:empty) ~ .chips { display: none; }
 /* the glow behind the example card spreads vertically only, so it never widens the page */
 .demo::before { inset: -40px 0; }
+.logo img { width: 26px; height: 26px; object-fit: contain; border-radius: 6px; }
+.logo:has(img) { background: #fff; }
+.wp-list img { object-fit: contain; background: var(--soft); }
+.app p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Display type: Plus Jakarta Sans for headings, numbers and the brand; Inter stays for reading text. */
+:root { --display: "Plus Jakarta Sans", Inter, system-ui, sans-serif; }
+h1, h2, h3, .brand span, .stats b, .demo-q, .welcome h3, .page-hero h1, .wp-head b { font-family: var(--display); }
+.hero h1 { font-weight: 800; letter-spacing: -0.025em; word-spacing: 0.04em; line-height: 1.06; }
+.lead { font-size: 18px; max-width: 600px; }
+.stats b { font-weight: 800; font-size: 30px; }
+.section-head h2 { font-weight: 800; letter-spacing: -0.02em; word-spacing: 0.03em; }
+
+/* News: news + campaigns on the left, the live X timeline on the right */
+.news-split { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; }
+.news-split > aside { position: sticky; top: calc(var(--header) + 16px); }
+.feed-h { font-size: 18px; margin: 0 0 12px; }
+.news-split .feed + .feed-h { margin-top: 28px; }
+.xsolo { max-width: 620px; margin: 0 auto; }
+.xlive { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 14px 6px; min-height: 240px; }
+.xlive-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; }
+.xlive-head a { margin-left: auto; font-size: 13px; }
+.live-dot { font-size: 12px; color: var(--accent); display: inline-flex; align-items: center; gap: 6px; }
+.live-dot::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+.xlive .twitter-timeline { display: block; color: var(--muted); font-size: 14px; padding: 12px 2px; }
+.xfallback { display: grid; gap: 12px; padding-bottom: 8px; }
+@media (max-width: 960px) { .news-split { grid-template-columns: 1fr; } .news-split > aside { position: static; } }
+.xnote { display: grid; gap: 8px; padding: 12px; border-radius: 12px; background: var(--accent-soft); font-size: 13.5px; }
+.xnote p { margin: 0; }
+.xnote .btn { justify-self: start; }
+.news-split .xfallback { max-height: calc(100vh - var(--header) - 110px); overflow: auto; padding-right: 4px; }
