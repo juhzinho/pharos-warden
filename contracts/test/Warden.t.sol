@@ -250,6 +250,63 @@ contract WardenTest is Test, PacificConfig {
         _assertWardenEmpty();
     }
 
+    function test_swapWprosToUsdc() public {
+        _policy(100e6, 300e6);
+        Warden.Intent memory it = _intent();
+        it.approvals = new Warden.Approval[](1);
+        it.approvals[0] = Warden.Approval(WPROS, FAROSWAP_DODO_APPROVE, 10 ether);
+        it.calls = new Warden.Call[](1);
+        it.calls[0] = Warden.Call(FAROSWAP_ROUTE_PROXY, _mixSwap(WPROS, USDC, 10 ether, 1e30, 1, 0));
+        it.outs = new Warden.Out[](1);
+        it.outs[0] = Warden.Out(USDC, 1);
+        uint256 before = IERC20Full(USDC).balanceOf(user);
+        _run(it, _permit(WPROS, 10 ether));
+        assertGt(IERC20Full(USDC).balanceOf(user), before);
+        _assertWardenEmpty();
+    }
+
+    function test_redeemMorphoSharesBackToUsdc() public {
+        _policy(100e6, 300e6);
+        vm.startPrank(user);
+        IERC20Full(USDC).approve(MORPHO_ROCKAWAYX, 40e6);
+        uint256 shares = IVault(MORPHO_ROCKAWAYX).deposit(40e6, user);
+        IERC20Full(MORPHO_ROCKAWAYX).approve(PERMIT2, type(uint256).max);
+        warden.setLimit(MORPHO_ROCKAWAYX, uint128(shares), uint128(shares));
+        vm.stopPrank();
+        Warden.Intent memory it = _intent();
+        it.calls = new Warden.Call[](1);
+        it.calls[0] = Warden.Call(
+            MORPHO_ROCKAWAYX, abi.encodeWithSignature("redeem(uint256,address,address)", shares, user, address(warden))
+        );
+        it.outs = new Warden.Out[](1);
+        it.outs[0] = Warden.Out(USDC, 40e6 - 2);
+        uint256 before = IERC20Full(USDC).balanceOf(user);
+        _run(it, _permit(MORPHO_ROCKAWAYX, shares));
+        assertGe(IERC20Full(USDC).balanceOf(user) - before, 40e6 - 2);
+        assertEq(IERC20Full(MORPHO_ROCKAWAYX).balanceOf(address(warden)), 0);
+        _assertWardenEmpty();
+    }
+
+    function test_withdrawFromAvalonBackToUsdc() public {
+        _policy(100e6, 300e6);
+        vm.startPrank(user);
+        IERC20Full(USDC).approve(AVALON_POOL, 25e6);
+        IAavePool(AVALON_POOL).supply(USDC, 25e6, user, 0);
+        IERC20Full(AVALON_AUSDC).approve(PERMIT2, type(uint256).max);
+        warden.setLimit(AVALON_AUSDC, 25e6, 25e6);
+        vm.stopPrank();
+        Warden.Intent memory it = _intent();
+        it.calls = new Warden.Call[](1);
+        it.calls[0] = Warden.Call(AVALON_POOL, abi.encodeWithSignature("withdraw(address,uint256,address)", USDC, 20e6, user));
+        it.outs = new Warden.Out[](1);
+        it.outs[0] = Warden.Out(USDC, 20e6);
+        uint256 before = IERC20Full(USDC).balanceOf(user);
+        _run(it, _permit(AVALON_AUSDC, 20e6));
+        assertEq(IERC20Full(USDC).balanceOf(user) - before, 20e6);
+        assertLe(IERC20Full(AVALON_AUSDC).balanceOf(address(warden)), 1); // rounding dust at most, swept
+        _assertWardenEmpty();
+    }
+
     // ─── guarantees ─────────────────────────────────────────────────────────────────────────────────────────────
 
     function test_revertsWhenTheSwapDeliversLessThanSigned() public {
