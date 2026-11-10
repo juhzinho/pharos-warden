@@ -5,17 +5,27 @@ const T = {
   en: {},
   pt: {
     connect: "Conectar carteira",
-    h1: "Um agente de IA que não consegue te fazer perder mais do que você assinou.",
-    lead: "Peça em palavras simples. O Warden lê a Pharos, decide e prepara uma transação. Você assina as garantias dela — <em>gastar no máximo isto, receber no mínimo aquilo</em> — na sua própria carteira, e o contrato Warden reverte tudo se alguma garantia falhar. Antes de você assinar qualquer coisa em outro dApp, ele simula para você.",
+    eyebrow: "dApp agent-native na Pharos",
+    h1: "Um agente de IA que <span class=\"hl\">não consegue te fazer perder</span> mais do que você assinou.",
+    lead: "Peça em palavras simples. O Warden lê a Pharos, decide e prepara uma transação. Você assina as garantias dela — <em>gastar no máximo isto, receber no mínimo aquilo</em> — e o contrato Warden reverte tudo se alguma delas falhar.",
+    ctaStart: "Começar com o agente", ctaHow: "Como funciona", pillsLabel: "Feito com",
+    demoBadge: "exemplo", demoNet: "Pacific Mainnet · FaroSwap", demoQ: "Troque 20 USDC por WPROS",
+    demo1: "Cotação ao vivo, impacto de preço e pool vs mercado conferidos", demo2: "A transação exata simulada antes de você assinar", demo3: "Assinada na sua carteira — nenhuma chave sai dela", demo4: "Abaixo do mínimo? O Warden reverte, nada se move",
+    stat1: "redes: Atlantic e Pacific", stat2: "ferramentas do agente, de swaps a x402", stat3: "ferramentas de IA da Pharos usadas", stat4: "chaves guardadas pelo agente",
+    howKicker: "Como funciona", howTitle: "O agente decide. O contrato garante.", howText: "Agentes são bons em ler a chain e escolher. Eles não devem guardar suas chaves — então o Warden divide o trabalho, e a parte que move dinheiro é garantida na chain.",
     f1t: "Pedir", f1: "“Pague 3 pessoas numa assinatura” · “Isto é seguro de assinar?”",
-    f2t: "O agente lê e decide", f2: "Chain MCP · Docs MCP · SkillEngine · ProsPilot",
-    f3t: "Simulação", f3: "a transação exata, antes de você assinar",
-    f4t: "Você assina as garantias", f4: "na sua carteira · nenhuma chave sai dela",
-    f5t: "O Warden garante", f5: "on-chain · ou nada se move",
+    f2t: "O agente lê e decide", f2: "saldos, pools, rendimentos, destinatários — pelo Chain MCP e Docs MCP",
+    f3t: "Simulação", f3: "a transação exata, no estado real da chain, antes de você assinar",
+    f4t: "Você assina as garantias", f4: "na sua própria carteira · nenhuma chave sai dela",
+    f5t: "O Warden garante", f5: "na chain — toda garantia se cumpre, ou nada se move",
+    appKicker: "O agente", appTitle: "Seu copiloto na Pharos, com cinto de segurança", appText: "Escolha uma ação à esquerda ou escreva. Tudo roda pelo agente; você assina na sua carteira.",
+    welcomeTitle: "O que vamos fazer na Pharos?", welcomeText: "Pagar pessoas, trocar, fazer stake, adicionar liquidez — ou colar qualquer coisa que outro dApp peça para você assinar. Tente um destes:",
+    footAbout: "Um agente de IA para a Pharos que prepara cada ação e um contrato que a garante. Feito para a Pharos Season of AI.", footProduct: "Produto", footBuild: "Construção", footChain: "Na chain", footFaucet: "Faucet de USDC de teste", footNote: "Não é recomendação financeira. O agente mostra os números e as fontes; você decide e assina.",
+    wpTitle: "Conectar uma carteira", wpText: "Carteiras encontradas neste navegador. Suas chaves ficam na carteira — o Warden só pede assinaturas.",
     agentTitle: "Agente Warden", newChat: "Nova conversa", send: "Enviar",
     placeholder: "Pergunte ao Warden… ex.: “Pague 2 USDC para 0x…”",
     walletTitle: "Sua carteira", walletEmpty: "Conecte uma carteira para ver saldos, posições e seus limites no Warden.",
-    ratesTitle: "Rendimento em USDC na Pacific Mainnet · últimos 7 dias", ratesNote: "Realizado: preços de cota e índices de renda on-chain com 7 dias de diferença, lidos pelo Pharos Chain MCP.",
+    ratesTitle: "Rendimento em USDC · Pacific · 7 dias", ratesNote: "Realizado: preços de cota e índices de renda on-chain com 7 dias de diferença, lidos pelo Pharos Chain MCP.",
     contractTitle: "O contrato", arch: "Arquitetura",
     spendMax: "Você gasta no máximo", getMin: "Você recebe no mínimo",
     navAgent: "Agente", navTrade: "Trade", navNetwork: "Rede", navEco: "Ecossistema", navNews: "Notícias",
@@ -24,8 +34,9 @@ const T = {
 const DYN = {
   en: {
     chips: {
-      atlantic: ["What's in my wallet?", "Set up my Warden limits", "Pay 1 USDC to 0x08cd62babd8Dac7404504792Df30C12fC5384Df5 and 0.5 USDC to 0xBBAE53F01f89C0075Ac780c35a7c7D3fB7C0ab33", "Scan my token approvals", "Is this safe to sign? to 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B data 0x095ea7b300000000000000000000000008cd62babd8dac7404504792df30c12fc5384df5ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"],
-      pacific: ["What's in my wallet?", "Where does USDC earn the most right now?", "Swap 5 USDC to WPROS", "Scan my token approvals", "Is 0x08cd62babd8Dac7404504792Df30C12fC5384Df5 safe to pay?"],
+      // "short label :: the full request" — the label is what the button shows
+      atlantic: ["What's in my wallet?", "Set up my Warden limits", "Pay 2 people in one signature :: Pay 1 USDC to 0x08cd62babd8Dac7404504792Df30C12fC5384Df5 and 0.5 USDC to 0xBBAE53F01f89C0075Ac780c35a7c7D3fB7C0ab33", "Scan my token approvals", "Check a drainer approval :: Is this safe to sign? to 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B data 0x095ea7b300000000000000000000000008cd62babd8dac7404504792df30c12fc5384df5ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "Check a suspicious link :: Is this link safe? https://app.farroswap.xyz/claim-airdrop"],
+      pacific: ["What's in my wallet?", "Where does USDC earn the most now?", "Swap 5 USDC to WPROS", "Show the FaroSwap pools :: Show me the FaroSwap WPROS/USDC pools and which one you would use for liquidity", "What does Faroo staking pay?", "Check a payee before paying :: Is 0x08cd62babd8Dac7404504792Df30C12fC5384Df5 safe to pay?"],
     },
     connectFirst: "Connect your wallet to let the agent prepare transactions for you. You can still ask questions.",
     noWallet: "No browser wallet found. Install MetaMask, Rabby or OKX Wallet.",
@@ -49,8 +60,8 @@ const DYN = {
   },
   pt: {
     chips: {
-      atlantic: ["O que tem na minha carteira?", "Configure meus limites no Warden", "Pague 1 USDC para 0x08cd62babd8Dac7404504792Df30C12fC5384Df5 e 0,5 USDC para 0xBBAE53F01f89C0075Ac780c35a7c7D3fB7C0ab33", "Verifique minhas aprovações de tokens", "Isto é seguro de assinar? to 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B data 0x095ea7b300000000000000000000000008cd62babd8dac7404504792df30c12fc5384df5ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"],
-      pacific: ["O que tem na minha carteira?", "Onde o USDC rende mais agora?", "Troque 5 USDC por WPROS", "Verifique minhas aprovações de tokens", "É seguro pagar 0x08cd62babd8Dac7404504792Df30C12fC5384Df5?"],
+      atlantic: ["O que tem na minha carteira?", "Configure meus limites no Warden", "Pagar 2 pessoas numa assinatura :: Pague 1 USDC para 0x08cd62babd8Dac7404504792Df30C12fC5384Df5 e 0,5 USDC para 0xBBAE53F01f89C0075Ac780c35a7c7D3fB7C0ab33", "Verifique minhas aprovações de tokens", "Checar uma aprovação de drainer :: Isto é seguro de assinar? to 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B data 0x095ea7b300000000000000000000000008cd62babd8dac7404504792df30c12fc5384df5ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "Checar um link suspeito :: Este link é seguro? https://app.farroswap.xyz/claim-airdrop"],
+      pacific: ["O que tem na minha carteira?", "Onde o USDC rende mais agora?", "Troque 5 USDC por WPROS", "Ver os pools da FaroSwap :: Mostre os pools WPROS/USDC da FaroSwap e qual você usaria para liquidez", "Quanto rende o staking da Faroo?", "Checar um destinatário :: É seguro pagar 0x08cd62babd8Dac7404504792Df30C12fC5384Df5?"],
     },
     connectFirst: "Conecte sua carteira para o agente preparar transações para você. Você ainda pode fazer perguntas.",
     noWallet: "Nenhuma carteira encontrada no navegador. Instale MetaMask, Rabby ou OKX Wallet.",
@@ -115,8 +126,17 @@ const amt = (token, v, key) => `${units(v, tokenOf(token, key).decimals)} ${toke
 const explorerTx = (h, key = network) => `${netInfo(key).explorer}/tx/${h}`;
 const explorerAddr = (a, key = network) => `${netInfo(key).explorer}/address/${a}`;
 
-/** Minimal, safe markdown: paragraphs, bullet lists, **bold**, `code`, links. Escapes everything first. */
+/**
+ * Minimal, safe markdown: short section titles (### / ####), paragraphs, bullet and numbered lists, **bold**, `code`,
+ * links. Escapes everything first. The answer's first paragraph is its headline (the agent leads with the conclusion).
+ */
 function md(text) {
+  const html = mdBlocks(text);
+  return html.replace(/^<p>/, '<p class="lead-line">');
+}
+function mdBlocks(text) {
+  const heading = /^\s*#{2,4}\s+(.+)$/;
+  text = String(text).replace(/^(\s*#{2,4}\s+.+)$/gm, "\n$1\n");
   const inline = (s) =>
     esc(s)
       .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
@@ -128,6 +148,7 @@ function md(text) {
     .split(/\n{2,}/)
     .map((block) => {
       const lines = block.split("\n");
+      if (lines.length === 1 && heading.test(lines[0])) return `<h4>${inline(lines[0].replace(heading, "$1"))}</h4>`;
       if (lines.every((l) => /^\s*[-*•]\s+/.test(l) || !l.trim())) return `<ul>${lines.filter((l) => l.trim()).map((l) => `<li>${inline(l.replace(/^\s*[-*•]\s+/, ""))}</li>`).join("")}</ul>`;
       if (lines.every((l) => /^\s*\d+[.)]\s+/.test(l) || !l.trim())) return `<ol>${lines.filter((l) => l.trim()).map((l) => `<li>${inline(l.replace(/^\s*\d+[.)]\s+/, ""))}</li>`).join("")}</ol>`;
       return `<p>${lines.map(inline).join("<br>")}</p>`;
@@ -142,6 +163,7 @@ let busy = false;
 let lastWallet = null;
 let lastRates = null;
 let controller = null;
+let connectHintShown = false;
 let network = (() => {
   try { return localStorage.getItem("network") || "atlantic"; } catch { return "atlantic"; }
 })();
@@ -168,7 +190,7 @@ document.querySelectorAll("[data-net]").forEach((b) =>
     $("log").innerHTML = "";
     lastWallet = null;
     applyNetwork();
-    agentNote(d("switched")(netInfo().name));
+    agentNote(d("switched")(netInfo().name), "notice");
     if (wallet) {
       wallet.network = network;
       wallet.ensureChain().catch(() => {}); // the wallet follows; a refusal is fine until the user signs something
@@ -178,22 +200,44 @@ document.querySelectorAll("[data-net]").forEach((b) =>
 );
 
 // ─── wallet ────────────────────────────────────────────────────────────────────────────────────────────────────
-$("connect").addEventListener("click", async () => {
-  if (wallet) return refreshWallet();
-  const list = availableWallets();
-  if (!list.length) return agentNote(d("noWallet"), "err");
-  const pick = list.length === 1 ? list[0] : list.find((w) => /metamask/i.test(w.name)) ?? list[0];
+// The picker lists every wallet the browser announces (EIP-6963: MetaMask, OKX Wallet, Rabby, Coinbase…), and offers
+// to install the well-known ones that are missing. The user chooses; nothing connects by itself.
+const KNOWN_WALLETS = [
+  { name: "MetaMask", match: /metamask/i, url: "https://metamask.io/download/" },
+  { name: "OKX Wallet", match: /okx/i, url: "https://web3.okx.com/download" },
+  { name: "Rabby", match: /rabby/i, url: "https://rabby.io/" },
+  { name: "Coinbase Wallet", match: /coinbase/i, url: "https://www.coinbase.com/wallet/downloads" },
+];
+async function connectWith(pick) {
   try {
     const w = new Wallet(pick.provider, pick.name);
     await w.connect(network);
     wallet = w;
     $("connect").textContent = short(w.address);
-    pick.provider.on?.("accountsChanged", (a) => { if (a?.[0]) { wallet.address = a[0]; $("connect").textContent = short(a[0]); refreshWallet(); } });
+    $("connect").title = pick.name;
+    pick.provider.on?.("accountsChanged", (a) => { if (wallet?.provider === pick.provider && a?.[0]) { wallet.address = a[0]; $("connect").textContent = short(a[0]); refreshWallet(); } });
     refreshWallet();
   } catch (e) {
     agentNote(e?.code === 4001 ? d("rejected") : String(e.message ?? e), "err");
   }
-});
+}
+function openWalletPicker() {
+  window.dispatchEvent(new Event("eip6963:requestProvider")); // wallets that loaded late announce again
+  const list = availableWallets();
+  const missing = KNOWN_WALLETS.filter((k) => !list.some((w) => k.match.test(w.name)));
+  const icon = (w) => (w.icon && /^data:image\/|^https:\/\//.test(w.icon) ? `<img src="${esc(w.icon)}" alt="">` : `<span class="wi">${esc(w.name[0])}</span>`);
+  $("walletList").innerHTML =
+    (list.length ? list.map((w, i) => `<button type="button" data-w="${i}">${icon(w)}${esc(w.name)}${wallet?.provider === w.provider ? `<small>${esc(lang === "pt" ? "conectada" : "connected")}</small>` : `<small>${esc(lang === "pt" ? "detectada" : "detected")}</small>`}</button>`).join("") : `<p class="muted">${esc(d("noWallet"))}</p>`) +
+    (missing.length ? `<p class="sep">${esc(lang === "pt" ? "Instalar" : "Install")}</p>${missing.map((k) => `<a href="${esc(k.url)}" target="_blank" rel="noopener"><span class="wi">${esc(k.name[0])}</span>${esc(k.name)}<small>↗</small></a>`).join("")}` : "");
+  $("walletList").querySelectorAll("button[data-w]").forEach((b) =>
+    b.addEventListener("click", () => {
+      $("walletPicker").close();
+      connectWith(list[Number(b.dataset.w)]);
+    }),
+  );
+  $("walletPicker").showModal();
+}
+$("connect").addEventListener("click", openWalletPicker);
 
 async function refreshWallet() {
   if (!wallet) return;
@@ -288,8 +332,12 @@ async function loadInfo() {
 
 // ─── chat ──────────────────────────────────────────────────────────────────────────────────────────────────────
 function renderChips() {
-  $("chips").innerHTML = d("chips")[network].map((c) => `<button type="button" title="${esc(c)}">${esc(c.length > 70 ? `${c.slice(0, 64)}…` : c)}</button>`).join("");
-  $("chips").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => ask(b.title)));
+  const items = d("chips")[network].map((c) => {
+    const [label, prompt] = c.includes(" :: ") ? c.split(" :: ") : [c, c];
+    return { label, prompt };
+  });
+  $("chips").innerHTML = items.map((c, i) => `<button type="button" data-c="${i}" title="${esc(c.prompt)}">${esc(c.label)}</button>`).join("");
+  $("chips").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => ask(items[Number(b.dataset.c)].prompt)));
 }
 
 function bubble(cls, html) {
@@ -313,6 +361,12 @@ $("input").addEventListener("keydown", (e) => {
     $("composer").requestSubmit();
   }
 });
+// the composer grows with what is typed (up to the CSS max-height)
+$("input").addEventListener("input", () => {
+  const t = $("input");
+  t.style.height = "auto";
+  t.style.height = `${t.scrollHeight + 2}px`;
+});
 $("reset").addEventListener("click", () => {
   controller?.abort();
   state = null;
@@ -321,15 +375,45 @@ $("reset").addEventListener("click", () => {
 
 const SERVER = { chain: "Chain MCP", docs: "Docs MCP", rpc: "RPC" };
 
+/** What each agent step is, in words (EN / PT) — the raw tool name stays in the tooltip. */
+const TOOL_LABELS = {
+  wallet_overview: ["Read wallet", "Leu a carteira"], vault_rates: ["Compared yields", "Comparou rendimentos"], quote_swap: ["Quoted the swap", "Cotou o swap"],
+  check_payee: ["Checked payee", "Checou destinatário"], check_transaction: ["Simulated the transaction", "Simulou a transação"], check_signature: ["Read the signature", "Leu a assinatura"],
+  scan_approvals: ["Scanned approvals", "Varreu aprovações"], propose_revoke: ["Prepared revoke", "Preparou revogação"], explain_tx: ["Explained the tx", "Explicou a transação"],
+  verify_tokens: ["Verified tokens", "Conferiu tokens"], docs_ask: ["Asked Pharos Docs", "Consultou o Docs"], skill_engine: ["Read SkillEngine", "Leu o SkillEngine"],
+  propose_swap: ["Prepared swap", "Preparou swap"], propose_deposit: ["Prepared deposit", "Preparou depósito"], propose_withdraw: ["Prepared withdrawal", "Preparou saque"],
+  propose_payment: ["Prepared payment", "Preparou pagamento"], propose_policy: ["Prepared policy", "Preparou política"], propose_policy_change: ["Prepared policy change", "Preparou mudança de política"],
+  verify_execution: ["Verified on chain", "Verificou na chain"], pool_info: ["Read FaroSwap pools", "Leu pools da FaroSwap"], propose_add_liquidity: ["Prepared liquidity", "Preparou liquidez"],
+  lp_positions: ["Read LP positions", "Leu posições LP"], propose_remove_liquidity: ["Prepared removal", "Preparou retirada"], staking_info: ["Read Faroo staking", "Leu staking Faroo"],
+  propose_stake: ["Prepared stake", "Preparou stake"], propose_unstake: ["Prepared unstake", "Preparou unstake"], realfi_positions: ["Read RealFi positions", "Leu posições RealFi"],
+  check_allowance: ["Checked allowance", "Checou permissão"], propose_approve: ["Prepared approval", "Preparou aprovação"], propose_send_native: ["Prepared transfer", "Preparou envio"],
+  buy_data: ["Prepared x402 purchase", "Preparou compra x402"], wallet_score: ["Scored wallet", "Deu score à carteira"], tx_history: ["Read history", "Leu histórico"],
+  pharos_news: ["Read Pharos news", "Leu notícias"], rwa_market: ["Read RWA market", "Leu mercado RWA"], web3_briefing: ["Read briefing", "Leu briefing"], ecosystem: ["Searched ecosystem", "Buscou no ecossistema"], check_link: ["Checked link", "Checou link"],
+};
+const toolLabel = (name) => TOOL_LABELS[name]?.[lang === "pt" ? 1 : 0] ?? name;
+
+/** Splits the agent's text into its body and the follow-ups of a last line "Next: a | b | c" (hidden while it streams). */
+function splitNext(text) {
+  const lines = String(text).replace(/\s+$/, "").split("\n");
+  const last = lines.at(-1) ?? "";
+  const m = last.match(/^\s*(?:\*\*)?(?:next|próximo|próximos|próximos passos|a seguir)(?:\*\*)?\s*:\s*(.*)$/i);
+  if (!m) return { body: text, options: [] };
+  const options = m[1].split("|").map((s) => s.replace(/\*\*/g, "").trim()).filter((s) => s.length > 1).slice(0, 3);
+  return { body: lines.slice(0, -1).join("\n"), options };
+}
+
 async function ask(prompt) {
   if (busy) return;
   busy = true;
   $("send").disabled = true;
   $("input").value = "";
   bubble("user", esc(prompt));
-  if (!wallet) agentNote(d("connectFirst"));
-  const msg = bubble("agent", `<div class="thinking"></div><div class="tools"></div><div class="text"></div><div class="cards"></div>`);
-  const parts = { thinking: msg.querySelector(".thinking"), tools: msg.querySelector(".tools"), text: msg.querySelector(".text"), cards: msg.querySelector(".cards") };
+  if (!wallet && !connectHintShown) {
+    connectHintShown = true;
+    agentNote(d("connectFirst"), "notice");
+  }
+  const msg = bubble("agent", `<div class="thinking"></div><div class="tools"></div><div class="text"></div><div class="cards"></div><div class="next"></div>`);
+  const parts = { thinking: msg.querySelector(".thinking"), tools: msg.querySelector(".tools"), text: msg.querySelector(".text"), cards: msg.querySelector(".cards"), next: msg.querySelector(".next") };
   let text = "";
   let thought = "";
   const toolEls = new Map();
@@ -356,14 +440,14 @@ async function ask(prompt) {
         const ev = JSON.parse(line.slice(6));
         if (ev.type === "text") {
           text += ev.delta;
-          parts.text.innerHTML = md(text);
+          parts.text.innerHTML = md(splitNext(text).body);
         } else if (ev.type === "thinking") {
           thought += ev.delta;
           parts.thinking.textContent = thought.slice(-400);
         } else if (ev.type === "tool_start") {
           const el = document.createElement("span");
           el.className = "tool run";
-          el.innerHTML = `<b>${esc(ev.name)}</b>`;
+          el.innerHTML = `<b>${esc(toolLabel(ev.name))}</b>`;
           parts.tools.appendChild(el);
           toolEls.set(ev.id, el);
         } else if (ev.type === "tool_end") {
@@ -372,7 +456,7 @@ async function ask(prompt) {
             el.className = `tool${ev.ok ? "" : " bad"}`;
             const names = (ev.calls ?? []).map((c) => `${SERVER[c.server] ?? c.server}·${c.tool}`).filter((v, k, a) => a.indexOf(v) === k);
             const calls = names.length ? ` <span class="calls">${esc(names.slice(0, 3).join(" "))}${names.length > 3 ? ` +${names.length - 3}` : ""}</span>` : "";
-            el.innerHTML = `<b>${esc(ev.name)}</b> ${(ev.ms / 1000).toFixed(1)}s${calls}`;
+            el.innerHTML = `<b>${esc(toolLabel(ev.name))}</b> ${(ev.ms / 1000).toFixed(1)}s${calls}`;
             el.title = ev.result?.error ?? `${ev.calls?.length ?? 0} ${d("calls")}`;
           }
         } else if (ev.type === "card") {
@@ -386,6 +470,16 @@ async function ask(prompt) {
       }
     }
     parts.thinking.remove(); // the reasoning summary is shown only while the agent works
+    // the agent's last line "Next: a | b | c" becomes one-click follow-ups
+    const { body, options } = splitNext(text);
+    parts.text.innerHTML = md(body);
+    for (const o of options) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = o;
+      b.addEventListener("click", () => ask(o));
+      parts.next.appendChild(b);
+    }
     if (lastWallet) refreshWallet();
   } catch (e) {
     parts.text.innerHTML += `<p class="msg err">${esc(e.name === "AbortError" ? d("stopped") : e.message)}</p>`;
@@ -426,6 +520,7 @@ function renderCard(card) {
   if (card.kind === "realfi") return renderRealfi(card);
   if (card.kind === "score") return renderScore(card);
   if (card.kind === "x402") return renderX402(card);
+  if (card.kind === "next") return renderNext(card);
   const key = card.networkKey ?? network;
   if (card.kind === "tx") {
     const el = document.createElement("div");
@@ -596,11 +691,14 @@ function renderActions() {
   const el = $("actions");
   if (!el) return;
   const pac = network === "pacific";
-  el.innerHTML = ACTIONS.map((g, gi) => `<h3>${esc(g.group[lang])}</h3>${g.items.map((a, ai) => `<button type="button" data-a="${gi}.${ai}" ${a.pacific && !pac ? `disabled title="${esc(lang === "pt" ? "Na Pacific Mainnet" : "On Pacific Mainnet")}"` : ""}><i aria-hidden="true">${a.i}</i>${esc(a[lang])}</button>`).join("")}`).join("") + `<p class="hint">${esc(lang === "pt" ? (pac ? "Tudo roda pelo agente; você assina na sua carteira." : "Itens apagados estão na Pacific Mainnet — troque no topo.") : pac ? "Everything runs through the agent; you sign in your wallet." : "Greyed items live on Pacific Mainnet — switch at the top.")}</p>`;
+  // actions that live on Pacific carry a "Mainnet" tag on Atlantic; choosing one switches the network first
+  const tag = `<span class="tag">Mainnet</span>`;
+  el.innerHTML = ACTIONS.map((g, gi) => `<h3>${esc(g.group[lang])}</h3>${g.items.map((a, ai) => `<button type="button" data-a="${gi}.${ai}"${a.pacific && !pac ? ` title="${esc(lang === "pt" ? "Na Pacific Mainnet — troca de rede ao clicar" : "On Pacific Mainnet — switches network")}"` : ""}><i aria-hidden="true">${a.i}</i>${esc(a[lang])}${a.pacific && !pac ? tag : ""}</button>`).join("")}`).join("") + `<p class="hint">${esc(lang === "pt" ? (pac ? "Tudo roda pelo agente; você assina na sua carteira." : "Itens “Mainnet” trocam para a Pacific Mainnet ao clicar.") : pac ? "Everything runs through the agent; you sign in your wallet." : "“Mainnet” items switch to Pacific Mainnet when you pick them.")}</p>`;
   el.querySelectorAll("button[data-a]").forEach((b) =>
     b.addEventListener("click", () => {
       const [gi, ai] = b.dataset.a.split(".").map(Number);
       const a = ACTIONS[gi].items[ai];
+      if (a.pacific && network !== "pacific") document.querySelector('[data-net="pacific"]').click();
       if (a.send) return ask(a.send[lang]);
       $("input").value = a.fill[lang];
       $("input").focus();
@@ -629,6 +727,20 @@ function renderLp(card) {
   el.innerHTML = `<div class="p-head"><b>${pt ? "Suas posições na FaroSwap V3" : "Your FaroSwap V3 positions"}</b> <span class="muted">${card.count}</span></div><div class="rows">${rows || `<p class="muted" style="margin:0">${pt ? "Nenhuma posição." : "No positions."}</p>`}</div><p class="fine">${pt ? "Valores e taxas simulados como o dono da posição, agora." : "Amounts and fees simulated as the position's owner, right now."}</p>`;
   el.querySelectorAll("button[data-c]").forEach((b) => b.addEventListener("click", () => ask(pt ? `Colete as taxas da posição #${b.dataset.c}` : `Collect the fees of position #${b.dataset.c}`)));
   el.querySelectorAll("button[data-r]").forEach((b) => b.addEventListener("click", () => ask(pt ? `Retire 100% da posição #${b.dataset.r} com 0,5% de slippage` : `Remove 100% of position #${b.dataset.r} with 0.5% slippage`)));
+  return el;
+}
+
+/** The agent's suggested next steps: one click each, sent as the user's next message. */
+function renderNext(card) {
+  const el = document.createElement("div");
+  el.className = "next";
+  for (const s of card.options ?? []) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = s;
+    b.addEventListener("click", () => ask(s));
+    el.appendChild(b);
+  }
   return el;
 }
 

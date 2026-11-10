@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pharos Warden — an AI agent with an on-chain seatbelt</title>
 <meta name="description" content="An AI agent for Pharos: it reads the chain, decides and prepares the transaction; you sign its guarantees in your wallet; the Warden contract reverts if any guarantee fails. It also simulates what other dApps ask you to sign.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312312b'/%3E%3Cpath d='M16 6l8 3v6c0 5.5-3.4 9.6-8 11-4.6-1.4-8-5.5-8-11V9z' fill='none' stroke='%23d9f2e6' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M12.5 16l2.6 2.6 4.6-5' fill='none' stroke='%23d9f2e6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2310483b'/%3E%3Cpath d='M16 6l8 3v6c0 5.5-3.4 9.6-8 11-4.6-1.4-8-5.5-8-11V9z' fill='none' stroke='%23d9f2e6' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M12.5 16l2.6 2.6 4.6-5' fill='none' stroke='%23d9f2e6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
@@ -14,7 +14,7 @@
 <header class="top">
   <div class="wrap top-row">
     <a class="brand" href="/" aria-label="Pharos Warden">
-      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><rect width="32" height="32" rx="7" fill="var(--brand)"/><path d="M16 6l8 3v6c0 5.5-3.4 9.6-8 11-4.6-1.4-8-5.5-8-11V9z" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 16l2.6 2.6 4.6-5" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--brand)"/><path d="M16 6l8 3v6c0 5.5-3.4 9.6-8 11-4.6-1.4-8-5.5-8-11V9z" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 16l2.6 2.6 4.6-5" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span>Pharos <b>Warden</b></span>
     </a>
     <nav class="nav" aria-label="Pages"><a href="/" aria-current="page" data-i="navAgent">Agent</a><a href="/trade" data-i="navTrade">Trade</a><a href="/network" data-i="navNetwork">Network</a><a href="/ecosystem" data-i="navEco">Ecosystem</a><a href="/news" data-i="navNews">News</a></nav>
@@ -30,28 +30,68 @@
 </header>
 
 <section class="hero wrap">
-  <h1 data-i="h1">An AI agent that can't make you lose more than you signed.</h1>
-  <p class="lead" data-i="lead">Ask in plain words. Warden reads Pharos, decides, and prepares one transaction. You sign its guarantees — <em>spend at most this, receive at least that</em> — in your own wallet, and the Warden contract reverts the whole thing if any guarantee fails. Before you sign anything on another dApp, it simulates it for you.</p>
-  <ol class="flow">
-    <li><b data-i="f1t">Ask</b><span data-i="f1">“Pay 3 people in one signature” · “Is this safe to sign?”</span></li>
-    <li><b data-i="f2t">Agent reads &amp; decides</b><span data-i="f2">Chain MCP · Docs MCP · SkillEngine · ProsPilot</span></li>
-    <li><b data-i="f3t">Dry run</b><span data-i="f3">the exact transaction, before you sign</span></li>
-    <li><b data-i="f4t">You sign the guarantees</b><span data-i="f4">in your wallet · no key ever leaves it</span></li>
-    <li><b data-i="f5t">Warden enforces</b><span data-i="f5">on chain · or nothing moves</span></li>
-  </ol>
+  <div>
+    <p class="eyebrow" data-i="eyebrow">Agent-native dApp on Pharos</p>
+    <h1 data-i="h1">An AI agent that <span class="hl">can't make you lose</span> more than you signed.</h1>
+    <p class="lead" data-i="lead">Ask in plain words. Warden reads Pharos, decides and prepares one transaction. You sign its guarantees — <em>spend at most this, receive at least that</em> — and the Warden contract reverts the whole thing if any of them fails.</p>
+    <div class="cta">
+      <a class="btn primary lg" href="#app" data-i="ctaStart">Start with the agent</a>
+      <a class="btn lg" href="#how" data-i="ctaHow">How it works</a>
+    </div>
+    <div class="pills"><span data-i="pillsLabel">Built on</span><b>Pharos Chain MCP</b><b>Docs MCP</b><b>SkillEngine</b><b>x402</b><b>ProsPilot</b></div>
+  </div>
+  <div class="demo" aria-hidden="true">
+    <div class="demo-card">
+      <div class="demo-head"><span class="badge" data-i="demoBadge">example</span><small data-i="demoNet">Pacific Mainnet · FaroSwap</small></div>
+      <p class="demo-q" data-i="demoQ">Swap 20 USDC to WPROS</p>
+      <div class="demo-row">
+        <div><span data-i="spendMax">You spend at most</span><b>20 USDC</b></div>
+        <div class="get"><span data-i="getMin">You receive at least</span><b>37.77 WPROS</b></div>
+      </div>
+      <ul class="demo-list">
+        <li data-i="demo1">Live quote, price impact and pool vs market checked</li>
+        <li data-i="demo2">The exact transaction dry-run before you sign</li>
+        <li data-i="demo3">Signed in your wallet — no key leaves it</li>
+        <li data-i="demo4">Below the minimum? Warden reverts, nothing moves</li>
+      </ul>
+    </div>
+  </div>
 </section>
+
+<div class="wrap">
+  <div class="stats">
+    <div><b>2</b><span data-i="stat1">networks: Atlantic and Pacific</span></div>
+    <div><b>38</b><span data-i="stat2">agent tools, from swaps to x402</span></div>
+    <div><b>4</b><span data-i="stat3">Pharos AI tools used</span></div>
+    <div><b>0</b><span data-i="stat4">keys held by the agent</span></div>
+  </div>
+
+  <div class="section-head" id="app">
+    <p class="kicker" data-i="appKicker">The agent</p>
+    <h2 data-i="appTitle">Your Pharos copilot, with a seatbelt</h2>
+    <p data-i="appText">Pick an action on the left or just type. Everything runs through the agent; you sign in your wallet.</p>
+  </div>
+</div>
 
 <main class="wrap grid three">
   <nav class="actions card" id="actions" aria-label="Quick actions"></nav>
   <section class="chat card" aria-label="Agent">
     <div class="chat-head">
-      <div><b data-i="agentTitle">Warden agent</b> <span class="muted" id="modelName">Claude</span></div>
+      <div class="who">
+        <span class="avatar" aria-hidden="true"><svg viewBox="0 0 32 32" width="20" height="20"><path d="M16 6l8 3v6c0 5.5-3.4 9.6-8 11-4.6-1.4-8-5.5-8-11V9z" fill="none" stroke="#d9f2e6" stroke-width="2.4" stroke-linejoin="round"/><path d="M12.5 16l2.6 2.6 4.6-5" fill="none" stroke="#d9f2e6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div><b data-i="agentTitle">Warden agent</b><small><span class="live"></span><span id="modelName">…</span></small></div>
+      </div>
       <button class="link" id="reset" data-i="newChat">New conversation</button>
     </div>
     <div class="log" id="log" aria-live="polite"></div>
+    <div class="welcome">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" width="30" height="30"><path d="M16 6l8 3v6c0 5.5-3.4 9.6-8 11-4.6-1.4-8-5.5-8-11V9z" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 16l2.6 2.6 4.6-5" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <h3 data-i="welcomeTitle">What should we do on Pharos?</h3>
+      <p data-i="welcomeText">Pay people, swap, stake, add liquidity — or paste anything another dApp asks you to sign. Try one of these:</p>
+    </div>
     <div class="chips" id="chips"></div>
     <form class="composer" id="composer">
-      <textarea id="input" rows="2" maxlength="2000" data-i-placeholder="placeholder" placeholder="Ask Warden… e.g. “Swap 5 USDC to WPROS”"></textarea>
+      <textarea id="input" rows="1" maxlength="2000" data-i-placeholder="placeholder" placeholder="Ask Warden… e.g. “Swap 5 USDC to WPROS”"></textarea>
       <button class="btn primary" id="send" type="submit" data-i="send">Send</button>
     </form>
     <p class="fine" id="fine">The agent never holds a key; every transaction is signed by you, and Warden reverts it unless every guarantee holds.</p>
@@ -63,7 +103,7 @@
       <div id="wallet" class="muted" data-i="walletEmpty">Connect a wallet to see balances, positions and your Warden limits.</div>
     </section>
     <section class="card pad">
-      <h2 data-i="ratesTitle">USDC yields on Pacific Mainnet · last 7 days</h2>
+      <h2 data-i="ratesTitle">USDC yields · Pacific · 7 days</h2>
       <div id="rates" class="muted">…</div>
       <p class="fine" data-i="ratesNote">Realised: from on-chain share prices and income indexes 7 days apart, read through the Pharos Chain MCP.</p>
     </section>
@@ -74,12 +114,40 @@
   </aside>
 </main>
 
+<div class="wrap">
+  <div class="section-head" id="how">
+    <p class="kicker" data-i="howKicker">How it works</p>
+    <h2 data-i="howTitle">The agent decides. The contract guarantees.</h2>
+    <p data-i="howText">Agents are good at reading the chain and choosing. They should not hold your keys — so Warden splits the work, and the parts that move money are enforced on chain.</p>
+  </div>
+  <ol class="flow">
+    <li><b data-i="f1t">Ask</b><span data-i="f1">“Pay 3 people in one signature” · “Is this safe to sign?”</span></li>
+    <li><b data-i="f2t">Agent reads &amp; decides</b><span data-i="f2">balances, pools, yields, payees — from the Chain MCP and Docs MCP</span></li>
+    <li><b data-i="f3t">Dry run</b><span data-i="f3">the exact transaction, against live state, before you sign</span></li>
+    <li><b data-i="f4t">You sign the guarantees</b><span data-i="f4">in your own wallet · no key ever leaves it</span></li>
+    <li><b data-i="f5t">Warden enforces</b><span data-i="f5">on chain — every guarantee holds, or nothing moves</span></li>
+  </ol>
+
+</div>
+
 <footer class="wrap foot">
-  <span>Pharos Warden · Season of AI capstone</span>
-  <a href="https://github.com/juhzinho/pharos-warden">GitHub</a>
-  <a href="https://github.com/juhzinho/pharos-warden/blob/master/docs/ARCHITECTURE.md" data-i="arch">Architecture</a>
-  <a id="footExplorer" href="https://atlantic.pharosscan.xyz" target="_blank" rel="noopener">Pharosscan</a>
+  <div>
+    <a class="brand" href="/"><svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--brand)"/><path d="M16 6l8 3v6c0 5.5-3.4 9.6-8 11-4.6-1.4-8-5.5-8-11V9z" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linejoin="round"/><path d="M12.5 16l2.6 2.6 4.6-5" fill="none" stroke="#d9f2e6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Pharos <b>Warden</b></span></a>
+    <p data-i="footAbout">An AI agent for Pharos that prepares every action and a contract that guarantees it. Built for the Pharos Season of AI.</p>
+  </div>
+  <div><h4 data-i="footProduct">Product</h4><a href="/" data-i="navAgent">Agent</a><a href="/trade">Trade</a><a href="/network" data-i="navNetwork">Network</a><a href="/ecosystem" data-i="navEco">Ecosystem</a><a href="/news" data-i="navNews">News</a></div>
+  <div><h4 data-i="footBuild">Build</h4><a href="https://github.com/juhzinho/pharos-warden" target="_blank" rel="noopener">GitHub</a><a href="https://github.com/juhzinho/pharos-warden/blob/master/docs/ARCHITECTURE.md" target="_blank" rel="noopener" data-i="arch">Architecture</a><a href="https://docs.pharos.xyz" target="_blank" rel="noopener">Pharos docs</a><a href="https://ai.pharos.xyz" target="_blank" rel="noopener">ai.pharos.xyz</a></div>
+  <div><h4 data-i="footChain">On chain</h4><a id="footExplorer" href="https://atlantic.pharosscan.xyz" target="_blank" rel="noopener">Pharosscan</a><a href="https://atlantic.pharosscan.xyz/address/0x58ad9DDF29D13328ceefAF70AFa42644E4D76766" target="_blank" rel="noopener">Warden · Atlantic</a><a href="https://www.pharosscan.xyz/address/0x58ad9DDF29D13328ceefAF70AFa42644E4D76766" target="_blank" rel="noopener">Warden · Pacific</a><a href="https://faucet.circle.com" target="_blank" rel="noopener" data-i="footFaucet">Test USDC faucet</a></div>
+  <div class="foot-bottom"><span>© 2026 Pharos Warden · MIT</span><span data-i="footNote">Not financial advice. The agent shows its numbers and sources; you decide and you sign.</span></div>
 </footer>
+
+<dialog class="wallets" id="walletPicker">
+  <form method="dialog">
+    <div class="wp-head"><b data-i="wpTitle">Connect a wallet</b><button class="link" value="cancel" aria-label="Close">✕</button></div>
+    <p class="muted" data-i="wpText">Wallets found in this browser. Your keys stay in your wallet — Warden only asks it to sign.</p>
+    <div class="wp-list" id="walletList"></div>
+  </form>
+</dialog>
 
 <template id="tpl-intent">
   <div class="proposal">

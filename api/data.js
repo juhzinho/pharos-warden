@@ -66,7 +66,7 @@ const networkInfo = (key) =>
       deployBlock: n.deployBlock,
       faucet: n.faucet ?? null,
       tokens: knownTokens().map((t) => ({ symbol: t.symbol, address: t.address, decimals: t.decimals })),
-      protocols: n.protocols.map((p) => ({ id: p.id, key: p.key, name: p.name, address: p.vault ?? p.pool ?? n.faroswap.routeProxy })),
+      protocols: n.protocols.map((p) => ({ id: p.id, key: p.key, name: p.name, address: p.vault ?? p.pool ?? (p.key === "faroswap_lp" ? n.faroswapV3.npm : n.faroswap.routeProxy) })),
     };
   });
 
