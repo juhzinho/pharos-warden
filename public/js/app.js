@@ -36,6 +36,8 @@ const DYN = {
     pros: "PROS (gas)", limits: "Warden limits", leftToday: "left today", perAction: "per action", noPolicy: "No Warden policy yet — ask the agent to set one up.", paused: "Paused", pause: "Pause Warden", unpause: "Unpause", protocols: "Protocols",
     offline: "The agent is offline on this deployment (no model key). The wallet and yields panels still work.",
     stopped: "Stopped.", policyNeeded: "Needs your Warden policy first", tools: "tools", mcp: "MCP calls",
+    mainnetWarn: "Pharos Pacific Mainnet · real funds. Check what your wallet shows before you sign.",
+    assume: { allowance: (s) => `your ${s} approval to Permit2 (the one-time step below)`, balance: (s) => `a ${s} balance of the amount to spend`, policy: () => "the Warden policy proposed above (not set yet)" },
   },
   pt: {
     chips: ["O que tem na minha carteira?", "Onde o USDC rende mais agora?", "Troque 5 USDC por WPROS", "Configure meus limites no Warden", "É seguro pagar 0x08cd62babd8Dac7404504792Df30C12fC5384Df5?"],
@@ -50,6 +52,8 @@ const DYN = {
     pros: "PROS (gás)", limits: "Limites no Warden", leftToday: "restam hoje", perAction: "por ação", noPolicy: "Ainda sem política no Warden — peça ao agente para configurar.", paused: "Pausado", pause: "Pausar o Warden", unpause: "Retomar", protocols: "Protocolos",
     offline: "O agente está desligado neste deploy (sem chave do modelo). Os painéis de carteira e rendimento continuam funcionando.",
     stopped: "Interrompido.", policyNeeded: "Precisa da sua política no Warden antes", tools: "ferramentas", mcp: "chamadas MCP",
+    mainnetWarn: "Pharos Pacific Mainnet · fundos reais. Confira o que a carteira mostrar antes de assinar.",
+    assume: { allowance: (s) => `sua aprovação de ${s} ao Permit2 (o passo único abaixo)`, balance: (s) => `um saldo de ${s} no valor a gastar`, policy: () => "a política do Warden proposta acima (ainda não definida)" },
   },
 };
 let lang = (() => {
@@ -85,6 +89,11 @@ function units(v, decimals, max = 6) {
   const f = (x % base).toString().padStart(decimals, "0").slice(0, max).replace(/0+$/, "");
   return `${neg ? "-" : ""}${i.toLocaleString(lang === "pt" ? "pt-BR" : "en-US")}${f ? (lang === "pt" ? "," : ".") + f : ""}`;
 }
+const BADGE = {
+  en: { swap: "swap", deposit: "deposit", withdraw: "withdraw", payment: "payment", policy: "policy", pause: "pause", unpause: "unpause", approve_payee: "payee", remove_payee: "payee", allow_withdraw: "limit" },
+  pt: { swap: "troca", deposit: "depósito", withdraw: "saque", payment: "pagamento", policy: "política", pause: "pausa", unpause: "retomar", approve_payee: "destinatário", remove_payee: "destinatário", allow_withdraw: "limite" },
+};
+const badge = (action) => BADGE[lang]?.[action] ?? action;
 const amt = (token, v) => `${units(v, tokenOf(token).decimals)} ${tokenOf(token).symbol}`;
 const explorer = (h) => `https://www.pharosscan.xyz/tx/${h}`;
 
@@ -259,7 +268,7 @@ async function ask(prompt) {
   const toolEls = new Map();
   controller = new AbortController();
   try {
-    const res = await fetch("/api/agent", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message: prompt, user: wallet?.address ?? null, state }), signal: controller.signal });
+    const res = await fetch("/api/agent", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message: prompt, user: wallet?.address ?? null, lang, state }), signal: controller.signal });
     if (!res.ok || !res.body) {
       const j = await res.json().catch(() => ({}));
       throw new Error(j.error ?? `HTTP ${res.status}`);
@@ -343,7 +352,7 @@ function renderCard(card) {
   if (card.kind === "tx") {
     const el = document.createElement("div");
     el.className = "proposal";
-    el.innerHTML = `<div class="p-head"><span class="badge">${esc(card.action)}</span><b>${esc(card.summary)}</b></div><ul class="lines">${card.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul><div class="mainnet">${esc(T[lang]?.mainnetWarn ?? EN.mainnetWarn)}</div><ol class="steps"></ol><div class="p-result"></div>`;
+    el.innerHTML = `<div class="p-head"><span class="badge">${esc(badge(card.action))}</span><b>${esc(card.summary)}</b></div><ul class="lines">${card.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul><div class="mainnet">${esc(d("mainnetWarn"))}</div><ol class="steps"></ol><div class="p-result"></div>`;
     el.querySelector(".steps").appendChild(
       stepRow(card.summary, d("sendTx"), async (li) => {
         requireWallet();
@@ -355,8 +364,9 @@ function renderCard(card) {
   }
   const el = $("tpl-intent").content.firstElementChild.cloneNode(true);
   if (lang === "pt") el.querySelectorAll("[data-i]").forEach((x) => (x.innerHTML = T.pt[x.dataset.i] ?? x.innerHTML));
+  el.querySelector(".mainnet").textContent = d("mainnetWarn");
   const { plan, simulation: sim } = card;
-  el.querySelector(".badge").textContent = card.action;
+  el.querySelector(".badge").textContent = badge(card.action);
   el.querySelector(".p-sum").textContent = card.summary;
   el.querySelector(".spend b").textContent = plan.permit.permitted.map((t) => amt(t.token, t.amount)).join(" + ");
   el.querySelector(".get b").innerHTML = [
@@ -367,7 +377,7 @@ function renderCard(card) {
   if (sim.ok) {
     simEl.className = "sim ok";
     const gets = sim.deltas.filter((x) => BigInt(x.delta) > 0n).map((x) => `${units(x.delta, x.decimals)} ${x.symbol}`);
-    simEl.innerHTML = `${d("dryOk")}${gets.length ? `: ${esc(gets.join(", "))}` : ""} · ~${Number(sim.gas).toLocaleString()} ${d("gas")}${sim.assumed.length ? `<span class="assumed">${d("assumed")}: ${esc(sim.assumed.join("; "))}</span>` : ""}`;
+    simEl.innerHTML = `${d("dryOk")}${gets.length ? `: ${esc(gets.join(", "))}` : ""} · ~${Number(sim.gas).toLocaleString()} ${d("gas")}${sim.assumed.length ? `<span class="assumed">${d("assumed")}: ${esc(sim.assumed.map((a) => d("assume")[a.kind]?.(a.symbol) ?? a.text).join("; "))}</span>` : ""}`;
   } else {
     simEl.className = "sim bad";
     simEl.textContent = `${d("dryBad")}: ${sim.error?.text ?? ""}`;

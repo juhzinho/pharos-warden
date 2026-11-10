@@ -65,7 +65,7 @@ export default async function handler(req, res) {
   try {
     [chain, docs] = await Promise.all([ChainReader.open(), DocsReader.open()]);
     history.push({ role: "user", content: message });
-    const args = { messages: history, user: input.user ?? null, chain, docs, emit, signal: abort.signal };
+    const args = { messages: history, user: input.user ?? null, lang: input.lang === "pt" ? "pt" : "en", chain, docs, emit, signal: abort.signal };
     const next = which === "openai" ? await (await import("../lib/agent-openai.js")).openaiTurn(args) : await (await import("../lib/agent.js")).agentTurn(args);
     emit({ type: "state", state: `${which}:${sealHistory(next)}`, mcp: { chain: chain.log.length, docs: docs.log.length } });
     emit({ type: "done" });

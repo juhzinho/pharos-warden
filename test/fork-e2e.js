@@ -72,7 +72,7 @@ try {
   await step("dry run works for a wallet with no approval and no policy (both assumed, and said so)", async () => {
     const quoteRun = await dryRun(pub, { ...I.swapIntent({ user: user.address, from: "USDC", amount: 20_000_000n, quote: 10n ** 30n, slippageBps: 10_000, summary: "quote" }), assume: { allowance: true, policy } });
     assert.ok(quoteRun.ok, quoteRun.error?.text);
-    assert.equal(quoteRun.assumed.length, 2);
+    assert.deepEqual(quoteRun.assumed.map((a) => a.kind).sort(), ["allowance", "policy"]);
   });
 
   await step("policy set by the user's own transaction", async () => {
