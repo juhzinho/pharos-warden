@@ -1,6 +1,8 @@
 import { isAddress } from "viem";
 import { ChainReader } from "../lib/chain.js";
 import { MODEL } from "../lib/agent.js";
+import { OPENAI_MODEL } from "../lib/agent-openai.js";
+import { provider } from "./agent.js";
 import { CHAIN_ID, FAROSWAP, PERMIT2, PROTOCOLS, WARDEN, explorerAddress, knownTokens } from "../lib/config.js";
 import { vaultRates, walletOverview } from "../lib/reads.js";
 import { verifyExecution } from "../lib/verify.js";
@@ -18,7 +20,7 @@ export default async function handler(req, res) {
   const q = new URL(req.url, "http://x").searchParams;
   const kind = q.get("kind");
   if (kind === "info") {
-    return json(res, 200, { chainId: CHAIN_ID, warden: WARDEN, wardenExplorer: explorerAddress(WARDEN), deployed: !/^0x0{40}$/i.test(WARDEN), model: MODEL, agentOnline: Boolean(process.env.ANTHROPIC_API_KEY), permit2: PERMIT2, tokens: knownTokens().map((t) => ({ symbol: t.symbol, address: t.address, decimals: t.decimals })), protocols: PROTOCOLS.map((p) => ({ id: p.id, key: p.key, name: p.name, address: p.vault ?? p.pool ?? FAROSWAP.routeProxy })) }, "public, s-maxage=60");
+    return json(res, 200, { chainId: CHAIN_ID, warden: WARDEN, wardenExplorer: explorerAddress(WARDEN), deployed: !/^0x0{40}$/i.test(WARDEN), model: provider() === "openai" ? OPENAI_MODEL : provider() === "anthropic" ? MODEL : null, agentOnline: Boolean(provider()), permit2: PERMIT2, tokens: knownTokens().map((t) => ({ symbol: t.symbol, address: t.address, decimals: t.decimals })), protocols: PROTOCOLS.map((p) => ({ id: p.id, key: p.key, name: p.name, address: p.vault ?? p.pool ?? FAROSWAP.routeProxy })) }, "public, s-maxage=60");
   }
   let chain;
   try {
