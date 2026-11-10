@@ -15,6 +15,16 @@ const targets = [
   { key: "wallet-okx-wallet", url: "https://web3.okx.com/" },
   { key: "wallet-rabby", url: "https://rabby.io/" },
 ];
+// Projects listed only on the Port page: their logos are the ones the official page itself shows (read 2026-11-10);
+// the big ones were then reduced to 128 px (Pillow) so the directory loads fast.
+const PORT_LOGOS = {
+  prosper: "https://static.pharosnetwork.xyz/port/eco/prosper.png",
+  accountable: "https://static.pharosnetwork.xyz/doc/accountable.jpg",
+  "anvita-mate": "https://static.pharosnetwork.xyz/doc/anvitamate.svg",
+  newsight: "https://static.pharosnetwork.xyz/port/eco/newsight.png",
+  pharosverse: "https://static.pharosnetwork.xyz/ecosystem/pharosverse.jpg",
+  grandline: "https://static.pharosnetwork.xyz/ecosystem/grandline.png",
+};
 const UA = { "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36", accept: "text/html,*/*" };
 const EXT = { "image/png": "png", "image/x-icon": "ico", "image/vnd.microsoft.icon": "ico", "image/svg+xml": "svg", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif" };
 
@@ -63,6 +73,20 @@ for (const t of targets) {
   } catch {}
   result[t.key] = saved;
   console.log(saved ? "ok  " : "none", t.key, saved ?? t.url);
+}
+for (const [key, url] of Object.entries(PORT_LOGOS)) {
+  if (result[key]) continue;
+  try {
+    const r = await get(url, "image/*");
+    const type = (r.headers.get("content-type") ?? "").split(";")[0].trim();
+    if (!r.ok || !EXT[type]) throw new Error(`HTTP ${r.status}`);
+    const file = `${key}.${EXT[type]}`;
+    writeFileSync(new URL(file, OUT), Buffer.from(await r.arrayBuffer()));
+    result[key] = `/img/logos/${file}`;
+    console.log("ok  ", key, "(Port page)");
+  } catch (e) {
+    console.log("none", key, e.message);
+  }
 }
 writeFileSync(new URL("../lib/logos.json", import.meta.url), `${JSON.stringify(result, null, 1)}\n`);
 console.log(`${Object.values(result).filter(Boolean).length} of ${targets.length} logos`);

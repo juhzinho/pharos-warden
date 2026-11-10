@@ -468,3 +468,7 @@ h1, h2, h3, .brand span, .stats b, .demo-q, .welcome h3, .page-hero h1, .wp-head
 .xnote p { margin: 0; }
 .xnote .btn { justify-self: start; }
 .news-split .xfallback { max-height: calc(100vh - var(--header) - 110px); overflow: auto; padding-right: 4px; }
+/* the X widget renders invisibly (so its height can be measured) until it is filled */
+.xlive { position: relative; overflow: hidden; }
+.xwidget { position: absolute; inset: 0 14px auto; visibility: hidden; pointer-events: none; }
+.xwidget.on { position: static; visibility: visible; pointer-events: auto; }

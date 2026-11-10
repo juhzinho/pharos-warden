@@ -86,7 +86,7 @@ export default async function handler(req, res) {
   if (kind === "ecosystem") {
     // each project's own icon, served by this site (scripts/fetch-logos.mjs)
     const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    return json(res, 200, { ...ECOSYSTEM, apps: ECOSYSTEM.apps.map((a) => ({ ...a, logo: LOGOS[slug(a.name)] ?? null })) }, "public, s-maxage=3600");
+    return json(res, 200, { ...ECOSYSTEM, apps: ECOSYSTEM.apps.map((a) => ({ ...a, logo: LOGOS[slug(a.name)] ?? null })) }, "public, s-maxage=3600, stale-while-revalidate=86400");
   }
   if (kind === "pools") {
     return withNetwork("pacific", async () => {
@@ -105,7 +105,7 @@ export default async function handler(req, res) {
   }
   if (kind === "charts") {
     const [charts, rwa] = await Promise.all([prospilotData("charts"), prospilotData("rwa")]);
-    return json(res, 200, { charts, rwa }, "public, s-maxage=600");
+    return json(res, 200, { charts, rwa }, "public, s-maxage=600, stale-while-revalidate=86400");
   }
   if (kind === "health") {
     const key = q.get("network") ?? DEFAULT_NETWORK;
