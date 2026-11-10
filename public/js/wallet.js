@@ -2,12 +2,22 @@
 // leaves the wallet: this page only asks it to sign typed data and send transactions the user approves.
 import { encodeFunctionData } from "https://esm.sh/viem@2.21.55";
 
-export const PACIFIC = {
-  chainId: "0x688", // 1672
-  chainName: "Pharos Pacific Mainnet",
-  nativeCurrency: { name: "PROS", symbol: "PROS", decimals: 18 },
-  rpcUrls: ["https://rpc.pharos.xyz"],
-  blockExplorerUrls: ["https://www.pharosscan.xyz"],
+/** The two Pharos networks, as wallet_addEthereumChain wants them. */
+export const CHAINS = {
+  atlantic: {
+    chainId: "0xa8231", // 688689
+    chainName: "Pharos Atlantic Testnet",
+    nativeCurrency: { name: "PHRS", symbol: "PHRS", decimals: 18 },
+    rpcUrls: ["https://atlantic.dplabs-internal.com"],
+    blockExplorerUrls: ["https://atlantic.pharosscan.xyz"],
+  },
+  pacific: {
+    chainId: "0x688", // 1672
+    chainName: "Pharos Pacific Mainnet",
+    nativeCurrency: { name: "PROS", symbol: "PROS", decimals: 18 },
+    rpcUrls: ["https://rpc.pharos.xyz"],
+    blockExplorerUrls: ["https://www.pharosscan.xyz"],
+  },
 };
 
 const providers = new Map();
@@ -25,40 +35,48 @@ export class Wallet {
     this.provider = provider;
     this.name = name;
     this.address = null;
+    this.network = "atlantic"; // the page's network: every send and signature happens on it
   }
 
   request(method, params) {
     return this.provider.request({ method, ...(params && { params }) });
   }
 
-  async connect() {
+  async connect(network = this.network) {
     const [address] = await this.request("eth_requestAccounts");
     this.address = address;
-    await this.ensurePacific();
+    this.network = network;
+    await this.ensureChain();
     return address;
   }
 
-  async ensurePacific() {
+  /** Puts the wallet on `network` (adding the chain if the wallet does not know it yet). */
+  async ensureChain(network = this.network) {
+    const target = CHAINS[network];
+    if (!target) throw new Error(`unknown network ${network}`);
     const chainId = await this.request("eth_chainId");
-    if (chainId?.toLowerCase() === PACIFIC.chainId) return;
+    if (chainId?.toLowerCase() === target.chainId) return;
     try {
-      await this.request("wallet_switchEthereumChain", [{ chainId: PACIFIC.chainId }]);
+      await this.request("wallet_switchEthereumChain", [{ chainId: target.chainId }]);
     } catch (e) {
       if (e?.code !== 4902 && !/unrecognized|not added|unknown chain/i.test(e?.message ?? "")) throw e;
-      await this.request("wallet_addEthereumChain", [PACIFIC]);
+      await this.request("wallet_addEthereumChain", [target]);
     }
+    // a wallet that silently stays on another chain must never get the request
+    const now = await this.request("eth_chainId");
+    if (now?.toLowerCase() !== target.chainId) throw new Error(`switch your wallet to ${target.chainName} first`);
   }
 
-  async send(tx) {
-    await this.ensurePacific();
+  async send(tx, network = this.network) {
+    await this.ensureChain(network);
     const params = { from: this.address, to: tx.to, data: tx.data };
     if (tx.value && BigInt(tx.value) > 0n) params.value = `0x${BigInt(tx.value).toString(16)}`;
     return this.request("eth_sendTransaction", [params]);
   }
 
   /** EIP-712 v4. Permit2's domain has no version field: EIP712Domain lists exactly name, chainId, verifyingContract. */
-  async signTypedData(td) {
-    await this.ensurePacific();
+  async signTypedData(td, network = this.network) {
+    await this.ensureChain(network);
     const payload = {
       domain: td.domain,
       types: { EIP712Domain: [{ name: "name", type: "string" }, { name: "chainId", type: "uint256" }, { name: "verifyingContract", type: "address" }], ...td.types },

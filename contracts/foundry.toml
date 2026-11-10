@@ -12,6 +12,7 @@ via_ir = true
 
 [rpc_endpoints]
 pacific = "https://rpc.pharos.xyz"
+atlantic = "https://atlantic.dplabs-internal.com"
 
 # Pharosscan (SocialScan) verification. The API key is not a secret: SocialScan accepts any value.
 [etherscan]

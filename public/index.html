@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pharos Warden — an AI agent with an on-chain seatbelt</title>
-<meta name="description" content="Ask in plain words. The agent reads Pharos, decides and prepares the transaction; you sign its guarantees in your wallet; the Warden contract reverts if any guarantee fails.">
+<meta name="description" content="An AI agent for Pharos: it reads the chain, decides and prepares the transaction; you sign its guarantees in your wallet; the Warden contract reverts if any guarantee fails. It also simulates what other dApps ask you to sign.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312312b'/%3E%3Cpath d='M16 6l8 3v6c0 5.5-3.4 9.6-8 11-4.6-1.4-8-5.5-8-11V9z' fill='none' stroke='%23d9f2e6' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M12.5 16l2.6 2.6 4.6-5' fill='none' stroke='%23d9f2e6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -18,7 +18,10 @@
       <span>Pharos <b>Warden</b></span>
     </a>
     <div class="top-actions">
-      <span class="net" title="Pharos Pacific Mainnet, chain 1672"><i></i>Pacific Mainnet</span>
+      <div class="netsw" role="group" aria-label="Network">
+        <button data-net="atlantic" aria-pressed="true" title="Pharos Atlantic Testnet, chain 688689 — test funds"><i></i><span class="l">Atlantic Testnet</span><span class="s">Testnet</span></button>
+        <button data-net="pacific" aria-pressed="false" title="Pharos Pacific Mainnet, chain 1672 — real funds"><i></i><span class="l">Pacific Mainnet</span><span class="s">Mainnet</span></button>
+      </div>
       <div class="lang" role="group" aria-label="Language"><button data-lang="en" aria-pressed="true">EN</button><button data-lang="pt" aria-pressed="false">PT</button></div>
       <button class="btn primary" id="connect" data-i="connect">Connect wallet</button>
     </div>
@@ -27,10 +30,10 @@
 
 <section class="hero wrap">
   <h1 data-i="h1">An AI agent that can't make you lose more than you signed.</h1>
-  <p class="lead" data-i="lead">Ask in plain words. Warden reads Pharos, decides, and prepares one transaction. You sign its guarantees — <em>spend at most this, receive at least that</em> — in your own wallet, and the Warden contract reverts the whole thing if any guarantee fails.</p>
+  <p class="lead" data-i="lead">Ask in plain words. Warden reads Pharos, decides, and prepares one transaction. You sign its guarantees — <em>spend at most this, receive at least that</em> — in your own wallet, and the Warden contract reverts the whole thing if any guarantee fails. Before you sign anything on another dApp, it simulates it for you.</p>
   <ol class="flow">
-    <li><b data-i="f1t">Ask</b><span data-i="f1">“Put 50 USDC where it earns most”</span></li>
-    <li><b data-i="f2t">Agent reads &amp; decides</b><span data-i="f2">Chain MCP · Docs MCP · SkillEngine</span></li>
+    <li><b data-i="f1t">Ask</b><span data-i="f1">“Pay 3 people in one signature” · “Is this safe to sign?”</span></li>
+    <li><b data-i="f2t">Agent reads &amp; decides</b><span data-i="f2">Chain MCP · Docs MCP · SkillEngine · ProsPilot</span></li>
     <li><b data-i="f3t">Dry run</b><span data-i="f3">the exact transaction, before you sign</span></li>
     <li><b data-i="f4t">You sign the guarantees</b><span data-i="f4">in your wallet · no key ever leaves it</span></li>
     <li><b data-i="f5t">Warden enforces</b><span data-i="f5">on chain · or nothing moves</span></li>
@@ -49,7 +52,7 @@
       <textarea id="input" rows="2" maxlength="2000" data-i-placeholder="placeholder" placeholder="Ask Warden… e.g. “Swap 5 USDC to WPROS”"></textarea>
       <button class="btn primary" id="send" type="submit" data-i="send">Send</button>
     </form>
-    <p class="fine" data-i="fine">Mainnet, real funds. The agent never holds a key; every transaction is signed by you, and Warden reverts it unless every guarantee holds.</p>
+    <p class="fine" id="fine">The agent never holds a key; every transaction is signed by you, and Warden reverts it unless every guarantee holds.</p>
   </section>
 
   <aside class="side">
@@ -58,7 +61,7 @@
       <div id="wallet" class="muted" data-i="walletEmpty">Connect a wallet to see balances, positions and your Warden limits.</div>
     </section>
     <section class="card pad">
-      <h2 data-i="ratesTitle">USDC yields · last 7 days</h2>
+      <h2 data-i="ratesTitle">USDC yields on Pacific Mainnet · last 7 days</h2>
       <div id="rates" class="muted">…</div>
       <p class="fine" data-i="ratesNote">Realised: from on-chain share prices and income indexes 7 days apart, read through the Pharos Chain MCP.</p>
     </section>
@@ -73,7 +76,7 @@
   <span>Pharos Warden · Season of AI capstone</span>
   <a href="https://github.com/juhzinho/pharos-warden">GitHub</a>
   <a href="https://github.com/juhzinho/pharos-warden/blob/master/docs/ARCHITECTURE.md" data-i="arch">Architecture</a>
-  <a href="https://www.pharosscan.xyz" target="_blank" rel="noopener">Pharosscan</a>
+  <a id="footExplorer" href="https://atlantic.pharosscan.xyz" target="_blank" rel="noopener">Pharosscan</a>
 </footer>
 
 <template id="tpl-intent">
@@ -84,7 +87,8 @@
       <div class="g get"><span data-i="getMin">You receive at least</span><b></b></div>
     </div>
     <div class="sim"></div>
-    <div class="mainnet" data-i="mainnetWarn">Pharos Pacific Mainnet · real funds. Check the amounts your wallet shows before you sign.</div>
+    <div class="mainnet"></div>
+    <div class="fee"></div>
     <ol class="steps"></ol>
     <div class="p-result"></div>
   </div>

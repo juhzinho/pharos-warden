@@ -1,72 +1,92 @@
 # Architecture
 
-Pharos Warden has three parts: an **agent** that reads Pharos and decides, a **page** where the user talks to it and signs, and a **contract** that guarantees the outcome. No part holds a user key, and no part holds any key that can move user funds.
+Pharos Warden has three parts: an **agent** that reads Pharos and decides, a **page** where the user talks to it and signs, and a **contract** that guarantees the outcome. No part holds a user key, and no part holds any key that can move user funds. Everything runs on one of two networks, chosen in the page header: Atlantic Testnet (the default) or Pacific Mainnet.
 
 ```mermaid
 flowchart LR
   U[User + own wallet] -- plain words --> P[Page]
-  P -- message, wallet address --> A[Agent API]
+  P -- message, wallet, network --> A[Agent API]
   A -- tool calls --> M[(LLM: GPT-5.5 or Claude)]
-  A -- reads --> C[Pharos Chain MCP]
+  A -- reads on Pacific --> C[Pharos Chain MCP]
+  A -- reads on Atlantic --> RA[Atlantic RPC]
   A -- asks / pages --> D[Pharos Docs MCP]
   A -- rules, networks, tokens --> S[SkillEngine on GitHub]
-  A -- dry run eth_call + overrides --> R[Pacific RPC]
-  A -- intent card --> P
-  P -- 1 approve Permit2 / 2 sign guarantees / 3 send --> U
+  A -- payee profile --> PP[ProsPilot Skill API]
+  A -- PROS price --> CG[CoinGecko]
+  A -- simulations: eth_call + overrides --> R[Network RPC]
+  A -- cards --> P
+  P -- approve Permit2 / sign guarantees / send --> U
   U -- execute(intent, permit, sig) --> W[Warden contract]
   W -- pulls signed amounts --> P2[Permit2]
-  W -- allowlisted calls --> X[FaroSwap · Morpho · Avalon]
-  A -- verify receipt --> C
+  W -- allowlisted calls, Pacific only --> X[FaroSwap · Morpho · Avalon]
+  W -- exact payments --> Y[Payees]
 ```
 
 ## 1. The agent (`lib/agent.js`, `lib/agent-openai.js`, `api/agent.js`)
 
-A streamed tool loop on the server. The model is GPT-5.5 (OpenAI) or Claude Opus 5.5 (Anthropic), whichever key the deployment has; both loops share the same 14 tools, system prompt and safety rules.
+A streamed tool loop on the server. The model is GPT-5.5 (OpenAI) or Claude Opus 5.5 (Anthropic), whichever key the deployment has. Both loops share the same tools, system prompt and safety rules. Each request runs inside one network (`withNetwork` in `lib/config.js`). The network picks the tools (`toolsFor`), the system prompt (`systemFor`), the tokens and protocols, and where chain reads come from: the **Chain MCP** on Pacific, the public RPC on Atlantic (the Chain MCP serves Pacific only).
 
-| Tool | Source | What for |
-|---|---|---|
-| `wallet_overview` | **Chain MCP** (`get_balance`, `eth_call`) | balances, vault positions in USDC, Permit2 approvals, the user's Warden policy and what is left today |
-| `vault_rates` | **Chain MCP** (`get_block`, `eth_call` at a block 7 days back) | realised 7-day APY from share prices / income index, and size |
-| `check_payee` | **Chain MCP** (`get_code`, `get_transaction_count`, `get_logs`, `eth_call`) | contract or wallet, never used, USDC-blacklisted, a token/protocol contract, a look-alike of a recent counterparty (address poisoning), a broken checksum |
-| `verify_tokens` | **Docs MCP** (`getPage` token registry) + **SkillEngine** `tokens.json` + **Chain MCP** | the same USDC/WPROS addresses from three independent sources |
-| `docs_ask` | **Docs MCP** (`askQuestion`) | any Pharos fact the decision depends on, with sources |
-| `skill_engine` | **SkillEngine** `SKILL.md`, `networks.json` | its write-operation rules (mainnet warning, key hygiene) and network config |
-| `quote_swap` | Pacific RPC `eth_call` with state overrides | the exact FaroSwap output (the Chain MCP's `eth_call` takes no overrides) |
-| `propose_swap` / `_deposit` / `_withdraw` / `_payment` | deterministic builders + dry run | an intent card the user signs |
-| `propose_policy` / `_policy_change` | deterministic builders | a policy transaction the user signs |
-| `verify_execution` | **Chain MCP** (`get_transaction_receipt`) | the receipt, decoded against what was signed |
+| Tool | Source | What for | Networks |
+|---|---|---|---|
+| `wallet_overview` | Chain MCP / RPC | balances, vault positions in USDC, Permit2 approvals, the Warden policy and what is left today | both |
+| `check_payee` | Chain MCP / RPC (`get_code`, `get_transaction_count`, `get_logs`, `eth_call`) + **ProsPilot** | contract or wallet, never used, USDC-blacklisted, token/protocol contract, look-alike of a recent counterparty, broken checksum; ProsPilot's wallet profile as a second opinion on Pacific | both |
+| `check_transaction` | RPC `eth_call` with **SimProbe** as the user's code | any dApp's transaction run as the user: balance and allowance changes, would it fail, risk flags, verdict | both |
+| `check_signature` | decoding + `get_code` of the spender | Permit, Permit2, EIP-3009, Seaport, Warden intents; drainer patterns | both |
+| `scan_approvals` / `propose_revoke` | `get_logs` (Approval events of the owner, any token) + `eth_call` allowances | live ERC-20 and Permit2 allowances with their risk; the revoke transaction the user signs | both |
+| `explain_tx` | `get_transaction`, `get_transaction_receipt`, `eth_call` replay | any transaction in words, why it failed | both |
+| `verify_tokens` | **Docs MCP** (`getPage` token registry) + **SkillEngine** `tokens.json` + chain | the network's token addresses from three sources; disagreements reported | both |
+| `docs_ask` | **Docs MCP** (`askQuestion`) | any Pharos fact the decision depends on, with sources | both |
+| `skill_engine` | **SkillEngine** `SKILL.md`, `networks.json` | its write-operation rules and the network's config | both |
+| `propose_payment` | deterministic builder + dry run | 1–10 exact payments in one signature | both |
+| `propose_policy` / `_policy_change` | deterministic builders | a policy transaction the user signs | both |
+| `verify_execution` | receipt | the receipt, decoded against what was signed | both |
+| `vault_rates` | Chain MCP (`get_block`, `eth_call` at a block 7 days back) | realised 7-day APY from share prices / income index, and size | Pacific |
+| `quote_swap` | RPC `eth_call` with state overrides + CoinGecko | the exact FaroSwap output, price impact, pool price vs market | Pacific |
+| `propose_swap` / `_deposit` / `_withdraw` | deterministic builders + dry run | an intent card the user signs | Pacific |
 
-What the model decides: which tools to call, what to recommend, and what to propose (venue, amount, slippage, limits). What it never does: write calldata, choose addresses, compute guarantees or touch a key. Every tool input is validated against its JSON schema before it runs (`validateInput`).
+The model decides which tools to call, what to recommend, and what to propose (venue, amount, slippage, limits, payees). It never writes calldata, chooses addresses, computes guarantees or touches a key. Every tool input is validated against its JSON schema before it runs (`validateInput`), and a tool from the other network is refused.
 
-The conversation is sent back to the page **sealed** (HMAC, `lib/session.js`) so a page cannot forge tool results or rewrite what the agent said. Visitors are rate-limited per IP.
+The conversation is sent back to the page **sealed** (HMAC, `lib/session.js`) and tagged with its provider and network, so a page cannot forge tool results, rewrite what the agent said, or replay a conversation on the other network. Visitors are rate-limited per IP. Reads against public endpoints run a few at a time (`lib/pool.js`), because the endpoints throttle bursts.
 
 ## 2. The intent and the dry run (`lib/intent.js`, `lib/simulate.js`)
 
-An intent is: exact approvals to allowlisted spenders, allowlisted calls, **outs** (the user's balance of a token must grow by at least `minDelta`), **pays** (exact payments), a deadline and a plan id. The user's inputs are a Permit2 batch: exact tokens and amounts, a one-time nonce.
+An intent is made of:
+- exact approvals to allowlisted spenders, and allowlisted calls;
+- **outs**: the user's balance of a token must grow by at least `minDelta`;
+- **pays**: exact payments;
+- a deadline and a plan id.
 
-Before anything is signed, the exact `Warden.execute` transaction is dry-run with one `eth_call` against live Pacific state:
+The user's inputs are a Permit2 batch: exact tokens and amounts, and a one-time nonce. A batch payment is one intent with several `pays` and one input, the total.
 
-- Permit2's code is replaced by `SimPermit2` (moves the permitted tokens without checking a signature — there is none yet);
-- the **user's own address** gets `SimRunner` code, which calls `Warden.execute` as the user and reads their balances around it;
-- steps the user has not taken yet (the Permit2 approval, the policy) are overridden in storage and **listed on the card as assumptions**.
+Before anything is signed, the exact `Warden.execute` transaction is dry-run with one `eth_call` against live state:
 
-The card shows what the user would receive, the gas, and any refusal in plain words (`explainRevert`). On a fork, the real result matched the dry run for every intent kind (`test/fork-e2e.js`).
+- Permit2's code is replaced by `SimPermit2`, which moves the permitted tokens without checking a signature (there is none yet).
+- The **user's own address** gets `SimRunner` code, which calls `Warden.execute` as the user and reads their balances around it.
+- Steps the user has not taken yet (the Permit2 approval, the policy) are overridden in storage and **listed on the card as assumptions**.
 
-## 3. The contract (`contracts/src/Warden.sol`)
+The card shows what the user would receive, the gas, the network fee and any refusal in plain words (`explainRevert`). On a fork, the real result matched the dry run for every intent kind (`test/fork-e2e.js`). On Atlantic, a real batch payment matched it too (README, *Proof on Atlantic*).
 
-- **No owner, no admin, no upgrade.** The protocol allowlist (call targets and approval spenders) is fixed in the constructor: FaroSwap DODORouteProxy + DODOApprove, Morpho Vault V2 RockawayX and SharpByte, Avalon pool.
-- **`execute(intent, permit, signature)`**, only by `intent.user`:
+## 3. Checking other dApps (`lib/guard.js`)
+
+`check_transaction` uses the same trick for transactions Warden did not build. `SimProbe` becomes the user's code; it records the native and token balances and the allowances, calls the target with the dApp's calldata and value as the user, and records them again. Watched tokens are the network's known tokens, the target itself if it is a token, and any token among the call's address arguments. Watched allowances are those of the target and of an `approve`'s spender. On top of the simulation come decoded-call flags: an approval to a plain wallet, an unlimited approval to an unknown contract, giving without receiving, a call that would fail, an unknown selector. These are ProsPilot's pre-sign rules, now resting on what the simulation saw.
+
+`check_signature` covers what no simulator sees: off-chain signatures that move funds later. `scan_approvals` reads allowances live and labels each spender from the network's known contracts and its code. `explain_tx` decodes logs against Warden's, Permit2's and the common token ABIs, and replays a failed transaction on the previous block for its revert reason.
+
+## 4. The contract (`contracts/src/Warden.sol`)
+
+- **No owner, no admin, no upgrade.** The protocol allowlist (call targets and approval spenders) is fixed in the constructor. On Pacific it holds FaroSwap DODORouteProxy + DODOApprove, Morpho Vault V2 RockawayX and SharpByte, and the Avalon pool. On Atlantic it holds nothing, so that Warden guards payments only.
+- **`execute(intent, permit, signature)`** can be called only by `intent.user`. It runs these steps:
   1. user policy: not paused, not expired, every input token has a per-action and per-day limit that the amount fits;
   2. record the user's balances of every `out` token;
   3. `Permit2.permitWitnessTransferFrom` pulls exactly the signed inputs; the witness is the EIP-712 hash of the intent, so changing any guarantee breaks the signature;
   4. exact approvals to allowlisted spenders → allowlisted calls (token-moving selectors refused) → approvals back to zero;
   5. exact payments (`payeesOnly` respected);
   6. every leftover goes back to the user;
-  7. every `out` checked against the user's real balance — otherwise **the whole transaction reverts**;
+  7. every `out` checked against the user's real balance; otherwise **the whole transaction reverts**;
   8. events: `Spent`, `Paid`, `Delivered(minDelta, delta)`, `Executed(planId, witness)`.
 - **Policy**, per user, set only by that user: `configure`, `setLimit`, `setProtocols`, `setPayee`, `setPayeesOnly`, `setExpiry`, `pause`, `unpause`.
 
-Tests: `contracts/test/Warden.t.sol`, 28 tests on a fork of Pacific Mainnet against the real Permit2, USDC, WPROS, FaroSwap, Morpho and Avalon, with real Permit2 signatures.
+Tests: `contracts/test/Warden.t.sol` runs 28 tests on a fork of Pacific Mainnet, against the real Permit2, USDC, WPROS, FaroSwap, Morpho and Avalon, with real Permit2 signatures.
 
 ## Trust model
 
@@ -74,9 +94,10 @@ Tests: `contracts/test/Warden.t.sol`, 28 tests on a fork of Pacific Mainnet agai
 |---|---|
 | the model misreads a pool or picks a bad venue | the minimum out is computed by code from a live quote and enforced on chain |
 | the model or a page is talked into sending funds elsewhere | outs are measured on the user's own balance; pays are exactly as signed |
-| a page lowers a minimum after the user signed | the witness changes: Permit2 rejects the signature |
-| someone replays a signed intent | Permit2 nonce is single-use; only `intent.user` can call `execute` |
-| a protocol call tries to move tokens directly | token-moving selectors are refused; targets are allowlisted |
-| the user over-trusts the agent | their own on-chain limits per action / per day, protocol list, payee list, expiry and pause |
+| a page lowers a minimum after the user signed | the witness changes, so Permit2 rejects the signature |
+| someone replays a signed intent | the Permit2 nonce is single-use, and only `intent.user` can call `execute` |
+| a protocol call tries to move tokens directly | token-moving selectors are refused, and targets are allowlisted |
+| the user over-trusts the agent | their own on-chain limits per action and per day, protocol list, payee list, expiry and pause |
+| a check outside Warden misses something | it is advice, shown with its evidence; Warden's guarantees do not depend on it |
 
 What the user does trust: their wallet's display of the typed data (it shows the inputs and the guarantees), the canonical Permit2, and the allowlisted protocols themselves.

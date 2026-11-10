@@ -1,9 +1,10 @@
 import { isAddress } from "viem";
-import { ChainReader } from "../lib/chain.js";
+import { openChain } from "../lib/chain.js";
+import { DEFAULT_NETWORK, NETWORKS, withNetwork } from "../lib/config.js";
 import { openHistory, rateLimit, sealHistory } from "../lib/session.js";
 import { DocsReader } from "../lib/sources.js";
 
-// POST /api/agent  { message, user?, state? }  →  text/event-stream of agent events, ending with { type: "state" }.
+// POST /api/agent  { message, user?, network?, lang?, state? }  →  text/event-stream of agent events, ending with { type: "state" }.
 // The model runs on OpenAI (OPENAI_API_KEY) or Anthropic (ANTHROPIC_API_KEY); the key stays on the server.
 // No private key exists anywhere in this app.
 
@@ -41,11 +42,14 @@ export default async function handler(req, res) {
 
   let input;
   let history;
+  let network;
   try {
     input = await body(req);
+    network = input.network == null ? DEFAULT_NETWORK : String(input.network);
+    if (!NETWORKS[network]) return fail(400, "network must be atlantic or pacific");
     const [tag, sealed] = String(input.state ?? "").split(/:(.*)/s);
-    // a conversation started on the other provider cannot continue here: its history format differs
-    history = tag === which ? openHistory(sealed) : [];
+    // a conversation continues only with the same provider (its history format) and on the same network
+    history = tag === `${which}@${network}` ? openHistory(sealed) : [];
   } catch (e) {
     return fail(400, e.message);
   }
@@ -63,11 +67,13 @@ export default async function handler(req, res) {
   let chain;
   let docs;
   try {
-    [chain, docs] = await Promise.all([ChainReader.open(), DocsReader.open()]);
-    history.push({ role: "user", content: message });
-    const args = { messages: history, user: input.user ?? null, lang: input.lang === "pt" ? "pt" : "en", chain, docs, emit, signal: abort.signal };
-    const next = which === "openai" ? await (await import("../lib/agent-openai.js")).openaiTurn(args) : await (await import("../lib/agent.js")).agentTurn(args);
-    emit({ type: "state", state: `${which}:${sealHistory(next)}`, mcp: { chain: chain.log.length, docs: docs.log.length } });
+    await withNetwork(network, async () => {
+      [chain, docs] = await Promise.all([openChain(NETWORKS[network]), DocsReader.open()]);
+      history.push({ role: "user", content: message });
+      const args = { messages: history, user: input.user ?? null, lang: input.lang === "pt" ? "pt" : "en", chain, docs, emit, signal: abort.signal };
+      const next = which === "openai" ? await (await import("../lib/agent-openai.js")).openaiTurn(args) : await (await import("../lib/agent.js")).agentTurn(args);
+      emit({ type: "state", state: `${which}@${network}:${sealHistory(next)}`, network, reads: { chain: chain.log.length, docs: docs.log.length } });
+    });
     emit({ type: "done" });
   } catch (e) {
     emit({ type: "error", message: explain(e, abort.signal.aborted) });
