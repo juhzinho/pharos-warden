@@ -14,14 +14,19 @@ const input = readFileSync(process.argv[2] ?? new URL("../scratch/warden-standar
 
 const post = async (params) => {
   const res = await fetch(API, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(params) });
-  return res.json();
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { status: "0", message: `HTTP ${res.status}: ${text.slice(0, 200)}` }; // the explorer API is down or answered HTML
+  }
 };
 const submit = await post({ apikey: "pharos", module: "contract", action: "verifysourcecode", contractaddress: address, sourceCode: input, codeformat: "solidity-standard-json-input", contractname: "src/Warden.sol:Warden", compilerversion: "v0.8.28+commit.7893614a", constructorArguements: args });
 console.log("submit:", JSON.stringify(submit));
 if (String(submit.status) !== "1") process.exit(/already verified/i.test(JSON.stringify(submit)) ? 0 : 1);
 for (let i = 0; i < 20; i++) {
   await new Promise((r) => setTimeout(r, 5000));
-  const st = await (await fetch(`${API}?${new URLSearchParams({ apikey: "pharos", module: "contract", action: "checkverifystatus", guid: submit.result })}`)).json();
+  const st = await fetch(`${API}?${new URLSearchParams({ apikey: "pharos", module: "contract", action: "checkverifystatus", guid: submit.result })}`).then((r) => r.json()).catch((e) => ({ result: `pending (status read failed: ${e.message})` }));
   console.log("status:", JSON.stringify(st));
   if (!/pending|queue/i.test(st.result ?? "")) process.exit(/pass|verified/i.test(st.result ?? "") ? 0 : 1);
 }
